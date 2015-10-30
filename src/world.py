@@ -51,3 +51,31 @@ class world:
                             robots[(x-radius,y+j)] = robot()
                             return
                 radius +=1
+
+    #Given the current location of the robot and the percept radius, the func tion returns a list of robots in its area
+    #and the submap of the percept sequence
+    def getsubmap(self, currentlocation, perceptradius):
+        """Given the current location of the robot and the percept radius, the func tion returns a
+        list of robots in its area and the submap of the percept sequence"""
+        northwestlocationx=currentlocation[0]-perceptradius
+        northwestlocationy=currentlocation[1]-perceptradius
+        currentPercept=self.worldmap[np.ix_([northwestlocationx,northwestlocationx+(2*perceptradius)],[northwestlocationy,northwestlocationy+(2*perceptradius)])]
+        #TODO: Change this based on the convention
+        currentPercept[perceptradius, perceptradius]=3
+        listofrobotlocations=self.getlistofrobotinsubmap(currentPercept)
+        if len(listofrobotlocations)>0:
+            listofrobots=[]
+            for robotlocation in listofrobotlocations:
+                listofrobots=listofrobots+[robots[(northwestlocationx+robotlocation[0], northwestlocationy+robotlocation[1])]]
+        return listofrobots, currentPercept
+
+    #Given the submap, it returns the index of the robots in the map
+    def getlistofrobotinsubmap(self, submap):
+        """Given the map, it returns the index of the robots in the map"""
+        robotpositions=[]
+        for i in len(submap):
+            for j in len(submap):
+                #TODO: Robot exists is assumed to be 2
+                if submap[i][j]==2:
+                    robotpositions=robotpositions+[(i,j)]
+        return robotpositions
