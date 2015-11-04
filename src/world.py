@@ -51,3 +51,6 @@ class world:
                             robots[(x-radius,y+j)] = robot()
                             return
                 radius +=1
+
+    def moveRobot(oldpos,newpos):
+        robots[newpos] = robots[oldpos].pop()

@@ -1,2 +1,2 @@
 class Robot:
-    perceptsize=3
+    perceptRadius=1
