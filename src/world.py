@@ -66,7 +66,7 @@ class world:
         if len(listofrobotlocations)>0:
             listofrobots=[]
             for robotlocation in listofrobotlocations:
-                listofrobots=listofrobots+[robots[(northwestlocationx+robotlocation[0], northwestlocationy+robotlocation[1])]]
+                listofrobots=listofrobots+[(northwestlocationx+robotlocation[0], northwestlocationy+robotlocation[1]), robots[(northwestlocationx+robotlocation[0], northwestlocationy+robotlocation[1])]]
         return listofrobots, currentPercept
 
     #Given the submap, it returns the index of the robots in the map
