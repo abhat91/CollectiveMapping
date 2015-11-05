@@ -1,7 +1,7 @@
 import numpy as np
 import tables
 
-class world:
+class World:
     worldmap = np.zeros(0)
     robotsbypos = {}
     posbyrobots = {}
@@ -13,6 +13,7 @@ class world:
                 0 means empty space,
                 1 means blocked space,
                 2 means there is another robot in that space
+                3 means the robot that is querying the world is in the space
             robotpositions: a list of coordinates where to insert the robots
         """
         self.worldmap = worldmap
@@ -62,30 +63,35 @@ class world:
 
     #Given the current location of the robot and the percept radius, the func tion returns a list of robots in its area
     #and the submap of the percept sequence
-    def getsubmap(self, currentlocation, perceptradius):
-        """Given the current location of the robot and the percept radius, the func tion returns a
-        list of robots in its area and the submap of the percept sequence"""
-        northwestlocationx=currentlocation[0]-perceptradius
-        northwestlocationy=currentlocation[1]-perceptradius
-        currentPercept=self.worldmap[np.ix_([northwestlocationx,northwestlocationx+(2*perceptradius)],[northwestlocationy,northwestlocationy+(2*perceptradius)])]
-        #TODO: Change this based on the convention
+    def getsubmap(self, robot):
+        """Given the current location of the robot and the percept radius, the
+        function returns a list of robots in its area and the submap of the
+        percept sequence"""
+        currentlocation = self.posbyrobots[robot]
+        perceptradius = robot.preceptsize
+        #get the top-left point of the square surrounding current robot
+        startx=currentlocation[0]-perceptradius
+        starty=currentlocation[1]-perceptradius
+        #submatrix with size perceptradius*2+1xperceptradius*2+1
+        currentPercept=self.worldmap[np.ix_([startx,startx+(2*perceptradius)+1],[starty,starty+(2*perceptradius)+1])]
+        #Add 3 to the position where the robot is (relative to the submap)
         currentPercept[perceptradius, perceptradius]=3
-        listofrobotlocations=self.getlistofrobotinsubmap(currentPercept)
+        robotsrelativelocations=self.getrobotsrelativepositions(currentPercept)
         if len(listofrobotlocations)>0:
             listofrobots=[]
-            for robotlocation in listofrobotlocations:
-                listofrobots=listofrobots+[(northwestlocationx+robotlocation[0], northwestlocationy+robotlocation[1]), robots[(northwestlocationx+robotlocation[0], northwestlocationy+robotlocation[1])]]
+            for robotlocation in robotsrelativelocations:
+                listofrobots.append((robotlocation[0], robotlocation[1]), self.robotsbypos[(startx+robotlocation[0], starty+robotlocation[1])])
         return listofrobots, currentPercept
 
     #Given the submap, it returns the index of the robots in the map
-    def getlistofrobotinsubmap(self, submap):
-        """Given the map, it returns the index of the robots in the map"""
+    def getrobotsrelativepositions(self, submap):
+        """Given the map, it returns the relative position of the robots in the submap"""
         robotpositions=[]
         for i in len(submap):
             for j in len(submap):
-                #TODO: Robot exists is assumed to be 2
+                #if a robot is at position i,j:
                 if submap[i][j]==2:
-                    robotpositions=robotpositions+[(i,j)]
+                    robotpositions.append((i,j))
         return robotpositions
 
     def robotMove(self,robot,movement):
