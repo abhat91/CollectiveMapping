@@ -1,0 +1,26 @@
+import os
+import robot
+import world
+import numpy as np
+
+def convertToInteger(multidimentionalList):
+    return map(int, multidimentionalList)
+
+def readmap():
+    directoryPath=os.getcwd()
+    fname=directoryPath+'/../worlds/world.txt'
+    data = [line.rstrip('\n') for line in open(fname)]
+    data = [ map(str,line.split(' ')) for line in data ]
+    return map(convertToInteger, data)
+
+
+worldmap=readmap()
+world=world.World(np.array(worldmap), [(4,2), (3,1)])
+
+otherrobotpositionandbot,perceptmap=world.getsubmap(world.robotsbypos[(3,1)])
+world.robotsbypos[(3,1)].expandperceptmap(perceptmap)
+print world.robotsbypos[(3,1)].perceptmap
+
+print '##############################################'
+otherrobotpositionandbot,perceptmap=world.getsubmap(world.robotsbypos[(4,2)])
+print perceptmap
