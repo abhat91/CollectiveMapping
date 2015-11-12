@@ -37,7 +37,7 @@ class World:
             @author: renatogg
             if position is not available(has another robot or a wall), try to place robot in 8-connected radius from specified position
         """
-        if self.worldmap[position] ==0:
+        if self.worldmap[position] ==utils.MAPREP.EMPTY:
             self.createRobot(position)
         else:
             radius = 1
@@ -46,22 +46,22 @@ class World:
             while True:
                 for i in range(-radius,radius):#top wall
                     if x+i >= 0 and x+i < mx and y + radius < my:
-                        if self.worldmap[x+i,y+radius] == 0:
+                        if self.worldmap[x+i,y+radius] == utils.MAPREP.EMPTY:
                             self.createRobot((x+i,y+radius))
                             return
                 for j in range(-radius,radius):#Right wall
                     if y+j >= 0 and y+j < my and x + radius < mx:
-                        if self.worldmap[x+radius,y+j] == 0:
-                            self.createrobot((x+radius,y+j))
+                        if self.worldmap[x+radius,y+j] == utils.MAPREP.EMPTY:
+                            self.createRobot((x+radius,y+j))
                             return
                 for i in range(-radius,radius):#Bottom wall
                     if x+i >= 0 and x+i < mx and y - radius >= 0:
-                        if self.worldmap[x+i,y-radius] == 0:
+                        if self.worldmap[x+i,y-radius] == utils.MAPREP.EMPTY:
                             self.createRobot((x+i,y-radius))
                             return
                 for j in range(-radius,radius):#Left  wall
                     if y+j >= 0 and y+j < my and x + radius >= 0:
-                        if self.worldmap[x-radius,y+j] == 0:
+                        if self.worldmap[x-radius,y+j] == utils.MAPREP.EMPTY:
                             self.createRobot((x-radius,y+j))
                             return
                 radius +=1
@@ -110,6 +110,8 @@ class World:
         rx,ry = self.posbyrobots[robot]
         dx,dy = movement
         newpos = rx+dx,ry+dy
-        if self.worldmap(newpos) == 0:
+        if self.worldmap[newpos] == utils.MAPREP.EMPTY:
             self.posbyrobots[robot] = newpos
-            self.robotsbypos[newpos] = self.robotsbypos[(ry,ry)].pop()
+            self.worldmap[newpos] = utils.MAPREP.PEER
+            self.worldmap[rx,ry] = utils.MAPREP.EMPTY
+            self.robotsbypos[newpos] = self.robotsbypos.pop((rx,ry))
