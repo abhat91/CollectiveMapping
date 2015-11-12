@@ -1,7 +1,7 @@
 import numpy as np
-import tables
 import robot
 import utils
+import copy
 
 class World:
     worldmap = np.zeros(0)
@@ -74,12 +74,12 @@ class World:
         percept sequence"""
         currentlocation = self.posbyrobots[robot]
         perceptradius = robot.perceptradius
+        currentPercept = None
         #get the top-left point of the square surrounding current robot
         startx=currentlocation[0]-perceptradius
         starty=currentlocation[1]-perceptradius
         #submatrix with size perceptradius*2+1xperceptradius*2+1
-        currentPercept=self.worldmap[startx:startx+(2*perceptradius)+1,starty:starty+(2*perceptradius)+1]
-        print currentPercept
+        currentPercept=copy.deepcopy(self.worldmap[startx:startx+(2*perceptradius)+1,starty:starty+(2*perceptradius)+1])
         #Add 3 to the position where the robot is (relative to the submap)
         currentPercept[perceptradius, perceptradius]=utils.MAPREP.SELF
         currentPercept[currentPercept == utils.MAPREP.UNEXPLORED] = utils.MAPREP.EMPTY
