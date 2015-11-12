@@ -36,7 +36,7 @@ class Robot:
         #This value has to be updated with the minimum value of x and y reached by the robot
         self.minxposition=9
         self.minyposition=9
-    
+
         #This value has to be updated with the minimum value of x and y reached by the robot
         self.maxxposition=11
         self.maxyposition=11
@@ -56,7 +56,8 @@ class Robot:
         """Given 2 robots in proximity, the map of the other robot is taken and stitched to the current map to make a larger map of the environment"""
         rpositionOfOtherRobotX = otherRobot.xmapposition-otherRobot.minxposition
         rpositionOfOtherRobotY = otherRobot.ymapposition-otherRobot.minyposition
-        robotmap=otherRobot.perceptmap[otherRobot.minxposition:otherRobot.maxxposition, otherRobot.minyposition:otherRobot.maxyposition]
+        robotmap=otherRobot.perceptmap[otherRobot.minxposition:otherRobot.maxxposition+1, otherRobot.minyposition:otherRobot.maxyposition+1]
+        robotmap[robotmap==utils.MAPREP.SELF]=utils.MAPREP.EMPTY
         shapeofworld=np.shape(robotmap)
         positionxofotherrobot=self.xmapposition-self.perceptradius+relativePositionOfOtherRobot[0]
         positionyofotherrobot=self.ymapposition-self.perceptradius+relativePositionOfOtherRobot[1]

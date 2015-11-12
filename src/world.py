@@ -101,6 +101,20 @@ class World:
                     robotpositions.append((i,j))
         return robotpositions
 
+    def updateminimumpositions(self, robot, currentposition):
+        if robot.minxposition>currentposition[0]:
+            robot.minxposition=currentposition[0]-1
+        if robot.minyposition>currentposition[1]:
+            robot.minyposition=currentposition[1]-1
+        return robot
+
+    def updatemaximumpositions(self, robot, currentposition):
+        if robot.maxxposition<currentposition[0]:
+            robot.maxxposition=currentposition[0]+1
+        if robot.maxyposition<currentposition[1]:
+            robot.maxyposition=currentposition[1]+1
+        return robot
+
     def robotMove(self,robot,movement):
         """
         @author renatogg
