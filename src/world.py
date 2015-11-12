@@ -29,7 +29,7 @@ class World:
         """
         Creates a new robot in given position
         """
-        self.robotsbypos[position] = robot.Robot() #Create new robot at given positon
+        self.robotsbypos[position] = robot.Robot(self) #Create new robot at given positon
         self.posbyrobots[self.robotsbypos[position]] = position
         self.worldmap[position]=utils.MAPREP.PEER
     def placenewrobot(self,position):
@@ -115,3 +115,5 @@ class World:
             self.worldmap[newpos] = utils.MAPREP.PEER
             self.worldmap[rx,ry] = utils.MAPREP.EMPTY
             self.robotsbypos[newpos] = self.robotsbypos.pop((rx,ry))
+            return True
+        return False

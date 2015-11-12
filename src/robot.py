@@ -1,5 +1,17 @@
 import numpy as np
+import utils
+direction = {
+0 : utils.MOVES.NORTH,
+1 : utils.MOVES.NORTHEAST,
+2 : utils.MOVES.EAST,
+3 : utils.MOVES.SOUTHEAST,
+4 : utils.MOVES.SOUTH,
+5 : utils.MOVES.SOUTHWEST,
+6 : utils.MOVES.WEST,
+7 : utils.MOVES.NORTHWEST
 
+
+}
 class Robot:
     perceptradius=1
     #TODO: Change this based on the size of the world
@@ -15,7 +27,8 @@ class Robot:
     #This value has to be updated with the minimum value of x and y reached by the robot
     maxxposition=11
     maxyposition=11
-    def __init__(self):
+    world = None
+    def __init__(self,world):
         self.perceptmap = np.zeros(shape=(20,20),dtype=int)
         self.xmapposition=10
         self.ymapposition=10
@@ -27,6 +40,7 @@ class Robot:
         #This value has to be updated with the minimum value of x and y reached by the robot
         self.maxxposition=11
         self.maxyposition=11
+        self.world = world
 
     def expandperceptmap(self, perceptMatrix):
         """Given the percept matrix, the robot adds the percept to the map of the robot"""
@@ -61,3 +75,13 @@ class Robot:
             self.maxxposition=startmapy+shapeofworld[0]
         if self.maxyposition>startmapy+shapeofworld[1]:
             self.maxyposition=startmapy+shapeofworld[1]
+    def move(self,dir):
+        if self.world.robotMove(self,dir):
+        #move successful, Update percept map
+            robots, percept = world.getsubmap(self)
+            self.expandperceptmap(percept)
+            return robots
+        return []
+
+
+
