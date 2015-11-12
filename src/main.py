@@ -3,6 +3,7 @@ import robot
 import world
 import numpy as np
 import copy
+import utils
 
 def convertToInteger(multidimentionalList):
     return map(int, multidimentionalList)
@@ -21,10 +22,12 @@ world=world.World(np.array(worldmap), [(4,2), (3,1)])
 otherrobotpositionandbot,perceptmap=world.getsubmap(world.robotsbypos[(3,1)])
 world.robotsbypos[(3,1)].expandperceptmap(copy.deepcopy(perceptmap))
 
+
 otherrobotpositionandbot,perceptmap2= world.getsubmap(world.robotsbypos[(4,2)])
-
 world.robotsbypos[(4,2)].expandperceptmap(copy.deepcopy(perceptmap2))
-print world.robotsbypos[(3,1)].perceptmap
-print '##############################################'
-print world.robotsbypos[4,2].perceptmap
+world.robotsbypos[(4,2)].stitchmaps(otherrobotpositionandbot[0][0],otherrobotpositionandbot[0][1])
 
+world.robotMove(world.robotsbypos[(4,2)], utils.MOVES.NORTH)
+otherrobotpositionandbot,perceptmap=world.getsubmap(world.robotsbypos[(3,2)])
+world.robotsbypos[(3,2)].expandperceptmap(copy.deepcopy(perceptmap))
+print world.robotsbypos[3,2].perceptmap
