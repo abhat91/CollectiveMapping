@@ -15,6 +15,18 @@ class Robot:
     #This value has to be updated with the minimum value of x and y reached by the robot
     maxxposition=11
     maxyposition=11
+    def __init__(self):
+        self.perceptmap = np.zeros(shape=(20,20),dtype=int)
+        self.xmapposition=10
+        self.ymapposition=10
+
+        #This value has to be updated with the minimum value of x and y reached by the robot
+        self.minxposition=9
+        self.minyposition=9
+    
+        #This value has to be updated with the minimum value of x and y reached by the robot
+        self.maxxposition=11
+        self.maxyposition=11
 
     def expandperceptmap(self, perceptMatrix):
         """Given the percept matrix, the robot adds the percept to the map of the robot"""
