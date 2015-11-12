@@ -36,7 +36,8 @@ class Robot:
         positionyofotherrobot=self.ymapposition-self.perceptradius+relativePositionOfOtherRobot[1]
         startmapx=positionxofotherrobot-rpositionOfOtherRobotX
         startmapy=positionyofotherrobot-rpositionOfOtherRobotY
-        self.perceptmap[startmapx:startmapx+shapeofworld[0], startmapy:startmapy+shapeofworld[1]]=robotmap
+        newsubmap=np.maximum.reduce([self.perceptmap[startmapx:startmapx+shapeofworld[0], startmapy:startmapy+shapeofworld[1]], robotmap])
+        self.perceptmap[startmapx:startmapx+shapeofworld[0], startmapy:startmapy+shapeofworld[1]]=newsubmap
 
         #Update the min and max positions covered by the map
         if self.minxposition>startmapx:
