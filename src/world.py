@@ -129,5 +129,7 @@ class World:
             self.worldmap[newpos] = utils.MAPREP.PEER
             self.worldmap[rx,ry] = utils.MAPREP.EMPTY
             self.robotsbypos[newpos] = self.robotsbypos.pop((rx,ry))
+            self.robotsbypos[newpos]=self.updateminimumpositions(self.robotsbypos[newpos], newpos)
+            self.robotsbypos[newpos]=self.updatemaximumpositions(self.robotsbypos[newpos], newpos)
             return True
         return False
