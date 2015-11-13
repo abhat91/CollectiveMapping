@@ -17,7 +17,7 @@ class Graphics(object):
         self.robotlabel = Label(canvas, textvariable=robotidtext, fg='black', bg='white')
         self.rect = {}
         self.rmap={}
-        self.colors = {0:"white",1:"black",2:"red",-1:"gray"}
+        self.colors = {3:"white",4:"black",2:"red",1:"blue",0:"gray"}
 
     def graphMap(worldmap):
         blocksize = (self.height-5)/float(self.size)
