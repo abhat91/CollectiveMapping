@@ -31,7 +31,7 @@ class Graphics(object):
 
     def graphRobotMap(self, robotmap,robotid):
         self.canvas.create_line(self.height+1,0,self.height,2*self.height, width = 5)
-        blocksize = (self.height-5)/float(self.size/2)
+        blocksize = (self.height-5)/float(self.size)
         for i in range(self.rsize):
             for j in range(self.rsize):
                 color = self.colors[robotmap[i,j]]
