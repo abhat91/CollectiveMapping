@@ -1,5 +1,6 @@
 import numpy as np
 import utils
+import random
 direction = {
 0 : utils.MOVES.NORTH,
 1 : utils.MOVES.NORTHEAST,
@@ -28,8 +29,8 @@ class Robot:
     maxxposition=11
     maxyposition=11
     world = None
-    def __init__(self,world):
-        l = len(world)
+    def __init__(self,world,maplen):
+        l = maplen
         self.perceptmap = np.zeros(shape=(2*l,2*l),dtype=int)
         self.xmapposition=l
         self.ymapposition=l
@@ -84,6 +85,12 @@ class Robot:
             self.expandperceptmap(percept)
             return robots
         return []
+    def randomMove():
+        robotslist = self.move(direction[int(random.random()*8)])
+        if len(robotslist)>0:
+            for relativepos,robot in robotslist:
+                self.stitchmaps(relativepos,robot)
 
+        
 
 
