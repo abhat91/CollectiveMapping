@@ -4,6 +4,8 @@ import world
 import numpy as np
 import copy
 import utils
+import graphics
+import Tkinter as tk
 
 def convertToInteger(multidimentionalList):
     return map(int, multidimentionalList)
@@ -18,16 +20,10 @@ def readmap():
 
 worldmap=readmap()
 world=world.World(np.array(worldmap), [(4,2), (3,1)])
+showmap=graphics.Graphics(len(worldmap))
+showmap.creategraphics(world.worldmap, world.robotsbypos[(3,1)].perceptmap, 1)
+showmap.root.mainloop()
 
-otherrobotpositionandbot,perceptmap=world.getsubmap(world.robotsbypos[(3,1)])
-world.robotsbypos[(3,1)].expandperceptmap(copy.deepcopy(perceptmap))
-
-
-otherrobotpositionandbot,perceptmap2= world.getsubmap(world.robotsbypos[(4,2)])
-world.robotsbypos[(4,2)].expandperceptmap(copy.deepcopy(perceptmap2))
-world.robotsbypos[(4,2)].stitchmaps(otherrobotpositionandbot[0][0],otherrobotpositionandbot[0][1])
-
-world.robotMove(world.robotsbypos[(4,2)], utils.MOVES.NORTH)
-otherrobotpositionandbot,perceptmap=world.getsubmap(world.robotsbypos[(3,2)])
-world.robotsbypos[(3,2)].expandperceptmap(copy.deepcopy(perceptmap))
-print world.robotsbypos[3,2].perceptmap
+world.robotsbypos[(3,1)].move(utils.MOVES.NORTH)
+world.robotsbypos[(2,1)].move(utils.MOVES.NORTH)
+#print world.robotsbypos[1,1].perceptmap

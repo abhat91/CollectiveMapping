@@ -81,7 +81,9 @@ class Robot:
     def move(self,dir):
         if self.world.robotMove(self,dir):
         #move successful, Update percept map
-            robots, percept = world.getsubmap(self)
+            self.xmapposition+=dir[0]
+            self.ymapposition+=dir[1]
+            robots, percept = self.world.getsubmap(self)
             self.expandperceptmap(percept)
             return robots
         return []
@@ -90,7 +92,3 @@ class Robot:
         if len(robotslist)>0:
             for relativepos,robot in robotslist:
                 self.stitchmaps(relativepos,robot)
-
-        
-
-
