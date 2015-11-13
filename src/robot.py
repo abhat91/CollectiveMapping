@@ -86,6 +86,11 @@ class Robot:
             return robots
         return []
     def randomMove():
+        robotslist = self.move(direction[int(random.random()*8)])
+        if len(robotslist)>0:
+            for relativepos,robot in robotslist:
+                self.stitchmaps(relativepos,robot)
+
         
 
 
