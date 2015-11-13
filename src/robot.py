@@ -29,17 +29,18 @@ class Robot:
     maxyposition=11
     world = None
     def __init__(self,world):
-        self.perceptmap = np.zeros(shape=(20,20),dtype=int)
-        self.xmapposition=10
-        self.ymapposition=10
+        l = len(world)
+        self.perceptmap = np.zeros(shape=(2*l,2*l),dtype=int)
+        self.xmapposition=l
+        self.ymapposition=l
 
         #This value has to be updated with the minimum value of x and y reached by the robot
-        self.minxposition=9
-        self.minyposition=9
+        self.minxposition=l - self.perceptradius
+        self.minyposition= l- self.perceptradius
 
         #This value has to be updated with the minimum value of x and y reached by the robot
-        self.maxxposition=11
-        self.maxyposition=11
+        self.maxxposition= l + self.perceptradius
+        self.maxyposition= l + self.perceptradius
         self.world = world
 
     def expandperceptmap(self, perceptMatrix):
