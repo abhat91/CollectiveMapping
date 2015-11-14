@@ -2,7 +2,7 @@ import numpy as np
 import random
 import Tkinter as tk
 import time
-
+import utils
 class Graphics(object):
     def __init__(self,size):
         self.size = size
@@ -17,7 +17,7 @@ class Graphics(object):
         self.robotlabel = tk.Label(self.canvas, textvariable=self.robotidtext, fg='black', bg='white')
         self.rect = {}
         self.rmap={}
-        self.colors = {3:"white",4:"black",2:"red",1:"blue",0:"gray"}
+        self.colors = {utils.MAPREP.EMPTY:"white",utils.MAPREP.BLOCKED:"black",utils.MAPREP.SELF:"red",utils.MAPREP.PEER:"blue",utils.MAPREP.UNEXPLORED:"gray"}
 
     def graphMap(self, worldmap):
         blocksize = (self.height-5)/float(self.size)
