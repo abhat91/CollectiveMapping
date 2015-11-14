@@ -90,10 +90,15 @@ class Robot:
             self.updateminimumpositions()
             robots, percept = self.world.getsubmap(self)
             self.expandperceptmap(percept)
+            self.stoppingcriterion()
             return robots
         return []
+
     def randomMove(self):
         robotslist = self.move(direction[int(random.random()*8)])
         if len(robotslist)>0:
             for relativepos,robot in robotslist:
                 self.stitchmaps(relativepos,robot)
+
+    def stoppingcriterion(self):
+        maptolookup=self.perceptmap[self.minxposition: self.maxxposition+1, self.minyposition:self.maxyposition+1]

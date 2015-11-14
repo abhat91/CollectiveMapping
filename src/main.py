@@ -13,7 +13,7 @@ def convertToInteger(multidimentionalList):
 
 def readmap():
     directoryPath=os.getcwd()
-    fname=directoryPath+'/../worlds/world2.txt'
+    fname=directoryPath+'/../worlds/world3.txt'
     data = [line.rstrip('\n') for line in open(fname)]
     data = [ map(str,line.split(' ')) for line in data ]
     return map(convertToInteger, data)
@@ -35,7 +35,7 @@ def run(t,worldmap,robotmap,robotid):
     #worldmap = np.random.randint(4, size=(size,size)) -1
     for robot in world.posbyrobots.keys():
         robot.randomMove()
-            
+
     selectedrobot = 0
     if len(showmap.listbox.curselection()) > 0:
         selectedrobot = showmap.listbox.curselection()[0]
@@ -46,4 +46,3 @@ def run(t,worldmap,robotmap,robotid):
 showmap.creategraphics(world.worldmap, world.posbyrobots.keys()[selectedrobot].perceptmap, selectedrobot)
 showmap.root.after(1,run, 0,world.worldmap,world.posbyrobots.keys()[selectedrobot].perceptmap,selectedrobot)
 showmap.root.mainloop()
-
