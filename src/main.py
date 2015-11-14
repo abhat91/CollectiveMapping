@@ -6,6 +6,7 @@ import copy
 import utils
 import graphics
 import Tkinter as tk
+import random
 
 def convertToInteger(multidimentionalList):
     return map(int, multidimentionalList)
@@ -21,7 +22,7 @@ def readmap():
 selectedrobot = 0
 
 worldmap=readmap()
-world=world.World(np.array(worldmap), [(5,3)])
+world=world.World(np.array(worldmap), [(5,3),(15,15)])
 showmap=graphics.Graphics(len(worldmap))
 
 #print world.robotsbypos[1,1].perceptmap
@@ -31,6 +32,7 @@ def run(t,worldmap,robotmap,robotid):
     #worldmap = np.random.randint(4, size=(size,size)) -1
     for robot in world.posbyrobots.keys():
         robot.randomMove()
+    selectedrobot = int( random.random()*len(world.robotsbypos))
     showmap.root.after(10,run, t,world.worldmap,world.posbyrobots.keys()[selectedrobot].perceptmap,selectedrobot)
     showmap.root.after(1,showmap.updateGraphics,worldmap,robotmap,robotid,t)
 
