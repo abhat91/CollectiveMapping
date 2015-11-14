@@ -15,19 +15,7 @@ direction = {
 }
 class Robot:
     perceptradius=1
-    #TODO: Change this based on the size of the world
-    perceptmap = np.zeros(shape=(20, 20), dtype=int)
-    #This position has to be updated on every move
-    xmapposition=10
-    ymapposition=10
 
-    #This value has to be updated with the minimum value of x and y reached by the robot
-    minxposition=9
-    minyposition=9
-
-    #This value has to be updated with the minimum value of x and y reached by the robot
-    maxxposition=11
-    maxyposition=11
     world = None
     def __init__(self,world,maplen):
         l = maplen
@@ -58,13 +46,13 @@ class Robot:
             self.minxposition=self.xmapposition-self.perceptradius
         if self.ymapposition - self.perceptradius < self.minyposition:
             self.minyposition=self.ymapposition-self.perceptradius
-    
+
     def updatemaximumpositions(self):
         if self.xmapposition + self.perceptradius > self.maxxposition:
             self.maxxposition=self.xmapposition+self.perceptradius
         if self.ymapposition + self.perceptradius > self.maxyposition:
             self.maxyposition=self.ymapposition+self.perceptradius
-    
+
 
     #Given 2 robots in proximity, the map of the other robot is taken and stitched to the current map to make a larger map of the environment
     def stitchmaps(self, relativePositionOfOtherRobot, otherRobot):
@@ -79,10 +67,6 @@ class Robot:
         positionyofotherrobot=self.ymapposition-self.perceptradius+relativePositionOfOtherRobot[1]
         startmapx=positionxofotherrobot-rpositionOfOtherRobotX
         startmapy=positionyofotherrobot-rpositionOfOtherRobotY
-        print "self"
-        print self.perceptmap[startmapx:startmapx+shapeofworld[0], startmapy:startmapy+shapeofworld[1]]
-        print "other"
-        print robotmap
         newsubmap=np.maximum.reduce([self.perceptmap[startmapx:startmapx+shapeofworld[0], startmapy:startmapy+shapeofworld[1]], robotmap])
         self.perceptmap[startmapx:startmapx+shapeofworld[0], startmapy:startmapy+shapeofworld[1]]=newsubmap
 
@@ -92,10 +76,11 @@ class Robot:
         if self.minyposition>startmapy:
             self.minyposition=startmapy
 
-        if self.maxxposition<startmapy+shapeofworld[0]:
-            self.maxxposition=startmapy+shapeofworld[0]
+        if self.maxxposition<startmapx+shapeofworld[0]:
+            self.maxxposition=startmapx+shapeofworld[0]-1
         if self.maxyposition>startmapy+shapeofworld[1]:
-            self.maxyposition=startmapy+shapeofworld[1]
+            self.maxyposition=startmapy+shapeofworld[1]-1
+
     def move(self,dir):
         if self.world.robotMove(self,dir):
         #move successful, Update percept map
