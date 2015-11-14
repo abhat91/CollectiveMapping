@@ -106,6 +106,30 @@ class Robot:
             for relativepos,robot in robotslist:
                 self.stitchmaps(relativepos,robot)
 
+    def adimove(self):
+        #Move randomly first a few times
+        dim=len(self.perceptmap)/4
+        northwest=self.perceptmap[self.xmapposition-dim:self.xmapposition, self.ymapposition-dim:self.ymapposition]
+        northeast=self.perceptmap[self.xmapposition:self.xmapposition+dim, self.ymapposition-dim:self.ymapposition]
+        southwest=self.perceptmap[self.xmapposition-dim:self.xmapposition, self.ymapposition:self.ymapposition+dim]
+        southeast=self.perceptmap[self.xmapposition:self.xmapposition+dim, self.ymapposition:self.ymapposition+dim]
+        val=[np.count_nonzero(northwest), np.count_nonzero(northeast), np.count_nonzero(southwest), np.count_nonzero(southeast)]
+        if val.index(min(val))==0:
+            x=[utils.MOVES.NORTHWEST, utils.MOVES.NORTH, utils.MOVES.WEST]
+            robotslist = self.move(random.choice(x))
+        elif val.index(min(val))==1:
+            x=[utils.MOVES.NORTHEAST, utils.MOVES.NORTH, utils.MOVES.EAST]
+            robotslist = self.move(random.choice(x))
+        elif val.index(min(val))==2:
+            x=[utils.MOVES.SOUTHWEST, utils.MOVES.SOUTH, utils.MOVES.WEST]
+            robotslist = self.move(random.choice(x))
+        elif val.index(min(val))==3:
+            x=[utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH, utils.MOVES.EAST]
+            robotslist = self.move(random.choice(x))
+        if len(robotslist) > 0:
+            for relativepos,robot in robotslist:
+                self.stitchmaps(relativepos,robot)
+
 
     def stoppingcriterion(self):
         maptolookup = self.perceptmap[ self.minxposition: self.maxxposition+1, self.minyposition:self.maxyposition+1 ]
