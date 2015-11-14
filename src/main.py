@@ -22,7 +22,7 @@ def readmap():
 selectedrobot = 0
 
 worldmap=readmap()
-world=world.World(np.array(worldmap), [(5,3),(15,15)])
+world=world.World(np.array(worldmap), [(5,3),(5,4),(15,15),(15,1),(1,15)])
 showmap=graphics.Graphics(len(worldmap))
 
 #print world.robotsbypos[1,1].perceptmap

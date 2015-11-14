@@ -101,19 +101,6 @@ class World:
                     robotpositions.append((i,j))
         return robotpositions
 
-    def updateminimumpositions(self, robot, currentposition):
-        if robot.minxposition>robot.xmapposition:
-            robot.minxposition=robot.xmapposition-1
-        if robot.minyposition>robot.ymapposition:
-            robot.minyposition=robot.ymapposition-1
-        return robot
-
-    def updatemaximumpositions(self, robot, currentposition):
-        if robot.maxxposition<robot.xmapposition:
-            robot.maxxposition=robot.xmapposition+1
-        if robot.maxyposition<robot.ymapposition:
-            robot.maxyposition=robot.ymapposition+1
-        return robot
 
     def robotMove(self,robot,movement):
         """
@@ -129,7 +116,5 @@ class World:
             self.worldmap[newpos] = utils.MAPREP.PEER
             self.worldmap[rx,ry] = utils.MAPREP.EMPTY
             self.robotsbypos[newpos] = self.robotsbypos.pop((rx,ry))
-            self.robotsbypos[newpos]=self.updateminimumpositions(self.robotsbypos[newpos], newpos)
-            self.robotsbypos[newpos]=self.updatemaximumpositions(self.robotsbypos[newpos], newpos)
             return True
         return False

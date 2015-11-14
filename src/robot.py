@@ -53,18 +53,36 @@ class Robot:
             for j in range((2*self.perceptradius)+1):
                 self.perceptmap[mapstartX+i][mapstartY+j]=perceptMatrix[i][j]
 
+    def updateminimumpositions(self):
+        if self.xmapposition - self.perceptradius < self.minxposition:
+            self.minxposition=self.xmapposition-self.perceptradius
+        if self.ymapposition - self.perceptradius < self.minyposition:
+            self.minyposition=self.ymapposition-self.perceptradius
+    
+    def updatemaximumpositions(self):
+        if self.xmapposition + self.perceptradius > self.maxxposition:
+            self.maxxposition=self.xmapposition+self.perceptradius
+        if self.ymapposition + self.perceptradius > self.maxyposition:
+            self.maxyposition=self.ymapposition+self.perceptradius
+    
+
     #Given 2 robots in proximity, the map of the other robot is taken and stitched to the current map to make a larger map of the environment
     def stitchmaps(self, relativePositionOfOtherRobot, otherRobot):
         """Given 2 robots in proximity, the map of the other robot is taken and stitched to the current map to make a larger map of the environment"""
         rpositionOfOtherRobotX = otherRobot.xmapposition-otherRobot.minxposition
         rpositionOfOtherRobotY = otherRobot.ymapposition-otherRobot.minyposition
         robotmap=otherRobot.perceptmap[otherRobot.minxposition:otherRobot.maxxposition+1, otherRobot.minyposition:otherRobot.maxyposition+1]
-        robotmap[robotmap==utils.MAPREP.SELF]=utils.MAPREP.EMPTY
+        robotmap[robotmap == utils.MAPREP.SELF]=utils.MAPREP.EMPTY
+        robotmap[robotmap == utils.MAPREP.PEER]=utils.MAPREP.EMPTY
         shapeofworld=np.shape(robotmap)
         positionxofotherrobot=self.xmapposition-self.perceptradius+relativePositionOfOtherRobot[0]
         positionyofotherrobot=self.ymapposition-self.perceptradius+relativePositionOfOtherRobot[1]
         startmapx=positionxofotherrobot-rpositionOfOtherRobotX
         startmapy=positionyofotherrobot-rpositionOfOtherRobotY
+        print "self"
+        print self.perceptmap[startmapx:startmapx+shapeofworld[0], startmapy:startmapy+shapeofworld[1]]
+        print "other"
+        print robotmap
         newsubmap=np.maximum.reduce([self.perceptmap[startmapx:startmapx+shapeofworld[0], startmapy:startmapy+shapeofworld[1]], robotmap])
         self.perceptmap[startmapx:startmapx+shapeofworld[0], startmapy:startmapy+shapeofworld[1]]=newsubmap
 
@@ -83,6 +101,8 @@ class Robot:
         #move successful, Update percept map
             self.xmapposition+=dir[0]
             self.ymapposition+=dir[1]
+            self.updatemaximumpositions()
+            self.updateminimumpositions()
             robots, percept = self.world.getsubmap(self)
             self.expandperceptmap(percept)
             return robots
