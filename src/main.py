@@ -9,9 +9,11 @@ import Tkinter as tk
 import random
 
 def convertToInteger(multidimentionalList):
+    """Converts to integer"""
     return map(int, multidimentionalList)
 
 def readmap():
+    """Method to read the map"""
     directoryPath=os.getcwd()
     fname=directoryPath+'/../worlds/world3.txt'
     data = [line.rstrip('\n') for line in open(fname)]
@@ -22,7 +24,7 @@ def readmap():
 selectedrobot = 0
 
 worldmap=readmap()
-world=world.World(np.array(worldmap), [(5,3),(5,4),(15,15),(15,1),(1,15)])
+world=world.World(np.array(worldmap), [(5,3),(5,4),(15,15),(15,1),(1,15),(1,16),(1,17),(2,15),(2,15),(0,15),(0,5),(11,15),(12,15),(12,13),(1,15),(14,1),(17,1),(15,15),(1,1)])
 showmap=graphics.Graphics(len(worldmap))
 for i in range(0,len(world.robotsbypos)):
     showmap.listbox.insert(tk.END,str(i))
@@ -31,8 +33,6 @@ showmap.listbox.activate(0)
 #print world.robotsbypos[1,1].perceptmap
 def run(t,worldmap,robotmap,robotid):
     t = t + 1
-    #timetext.set('Time: ' + str(t))
-    #worldmap = np.random.randint(4, size=(size,size)) -1
     for robot in world.posbyrobots.keys():
         robot.randomMove()
 
