@@ -24,7 +24,10 @@ selectedrobot = 0
 worldmap=readmap()
 world=world.World(np.array(worldmap), [(5,3),(5,4),(15,15),(15,1),(1,15)])
 showmap=graphics.Graphics(len(worldmap))
+for i in range(0,len(world.robotsbypos)):
+    showmap.listbox.insert(tk.END,str(i))
 
+showmap.listbox.activate(0)
 #print world.robotsbypos[1,1].perceptmap
 def run(t,worldmap,robotmap,robotid):
     t = t + 1
@@ -32,7 +35,10 @@ def run(t,worldmap,robotmap,robotid):
     #worldmap = np.random.randint(4, size=(size,size)) -1
     for robot in world.posbyrobots.keys():
         robot.randomMove()
-    selectedrobot = int( random.random()*len(world.robotsbypos))
+            
+    selectedrobot = 0
+    if len(showmap.listbox.curselection()) > 0:
+        selectedrobot = showmap.listbox.curselection()[0]
     showmap.root.after(10,run, t,world.worldmap,world.posbyrobots.keys()[selectedrobot].perceptmap,selectedrobot)
     showmap.root.after(1,showmap.updateGraphics,worldmap,robotmap,robotid,t)
 

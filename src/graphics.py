@@ -15,10 +15,11 @@ class Graphics(object):
         self.timelabel = tk.Label(self.canvas, textvariable=self.timetext, fg='black', bg='white')
         self.robotidtext = tk.StringVar()
         self.robotlabel = tk.Label(self.canvas, textvariable=self.robotidtext, fg='black', bg='white')
+        self.listbox = tk.Listbox(self.canvas)
         self.rect = {}
         self.rmap={}
         self.colors = {utils.MAPREP.EMPTY:"white",utils.MAPREP.BLOCKED:"black",utils.MAPREP.SELF:"red",utils.MAPREP.PEER:"blue",utils.MAPREP.UNEXPLORED:"gray"}
-
+    
     def graphMap(self, worldmap):
         blocksize = (self.height-5)/float(self.size)
         for i in range(self.size):
@@ -27,6 +28,8 @@ class Graphics(object):
                 self.rect[i,j]=(self.canvas.create_rectangle(i*blocksize+5,j*blocksize+5,i*blocksize+blocksize+5,j*blocksize+blocksize+5, outline=color, fill=color))
         self.timelabel.pack()
         self.canvas.create_window(self.height/2, self.height + 20, window=self.timelabel)
+        self.listbox.pack()
+        self.canvas.create_window(self.height/2, self.height+160,window = self.listbox)
         self.timetext.set('Time: 0')
 
     def graphRobotMap(self, robotmap,robotid):
