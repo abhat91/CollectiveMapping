@@ -102,17 +102,17 @@ class World:
         return robotpositions
 
     def updateminimumpositions(self, robot, currentposition):
-        if robot.minxposition>currentposition[0]:
-            robot.minxposition=currentposition[0]-1
-        if robot.minyposition>currentposition[1]:
-            robot.minyposition=currentposition[1]-1
+        if robot.minxposition>robot.xmapposition:
+            robot.minxposition=robot.xmapposition-1
+        if robot.minyposition>robot.ymapposition:
+            robot.minyposition=robot.ymapposition-1
         return robot
 
     def updatemaximumpositions(self, robot, currentposition):
-        if robot.maxxposition<currentposition[0]:
-            robot.maxxposition=currentposition[0]+1
-        if robot.maxyposition<currentposition[1]:
-            robot.maxyposition=currentposition[1]+1
+        if robot.maxxposition<robot.xmapposition:
+            robot.maxxposition=robot.xmapposition+1
+        if robot.maxyposition<robot.ymapposition:
+            robot.maxyposition=robot.ymapposition+1
         return robot
 
     def robotMove(self,robot,movement):
