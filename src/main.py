@@ -12,18 +12,30 @@ def convertToInteger(multidimentionalList):
 
 def readmap():
     directoryPath=os.getcwd()
-    fname=directoryPath+'/../worlds/world.txt'
+    fname=directoryPath+'/../worlds/world2.txt'
     data = [line.rstrip('\n') for line in open(fname)]
     data = [ map(str,line.split(' ')) for line in data ]
     return map(convertToInteger, data)
 
 
+selectedrobot = 0
+
 worldmap=readmap()
-world=world.World(np.array(worldmap), [(4,2), (3,1)])
+world=world.World(np.array(worldmap), [(5,3)])
 showmap=graphics.Graphics(len(worldmap))
-showmap.creategraphics(world.worldmap, world.robotsbypos[(3,1)].perceptmap, 1)
+
+#print world.robotsbypos[1,1].perceptmap
+def run(t,worldmap,robotmap,robotid):
+    t = t + 1
+    #timetext.set('Time: ' + str(t))
+    #worldmap = np.random.randint(4, size=(size,size)) -1
+    for robot in world.posbyrobots.keys():
+        robot.randomMove()
+    showmap.root.after(10,run, t,world.worldmap,world.posbyrobots.keys()[selectedrobot].perceptmap,selectedrobot)
+    showmap.root.after(1,showmap.updateGraphics,worldmap,robotmap,robotid,t)
+
+
+showmap.creategraphics(world.worldmap, world.posbyrobots.keys()[selectedrobot].perceptmap, selectedrobot)
+showmap.root.after(1,run, 0,world.worldmap,world.posbyrobots.keys()[selectedrobot].perceptmap,selectedrobot)
 showmap.root.mainloop()
 
-world.robotsbypos[(3,1)].move(utils.MOVES.NORTH)
-world.robotsbypos[(2,1)].move(utils.MOVES.NORTH)
-#print world.robotsbypos[1,1].perceptmap

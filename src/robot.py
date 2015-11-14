@@ -87,7 +87,7 @@ class Robot:
             self.expandperceptmap(percept)
             return robots
         return []
-    def randomMove():
+    def randomMove(self):
         robotslist = self.move(direction[int(random.random()*8)])
         if len(robotslist)>0:
             for relativepos,robot in robotslist:
