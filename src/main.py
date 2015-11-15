@@ -42,7 +42,7 @@ def run(t,worldmap,robotmap,robotid):
 
     selectedrobot = 0
     if len(showmap.listbox.curselection()) > 0:
-        selectedrobot = showmap.listbox.curselection()[0]
+        selectedrobot = int(showmap.listbox.curselection()[0])
     showmap.root.after(10,run, t,world.worldmap,world.posbyrobots.keys()[selectedrobot].perceptmap,selectedrobot)
     showmap.root.after(1,showmap.updateGraphics,worldmap,robotmap,robotid,t)
 
