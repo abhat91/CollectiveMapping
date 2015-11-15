@@ -101,6 +101,16 @@ class World:
                     robotpositions.append((i,j))
         return robotpositions
 
+    #Find out if a diagonal move is valid
+    def testDiag(self,robot,movement):
+        rx,ry = self.posbyrobots[robot]
+        dx,dy = movement
+        if abs(dx) == 1 and abs(dy) == 1:
+            if self.worldmap[rx+dx,0] == utils.MAPREP.EMPTY and self.worldmap[0,ry+dy] == utils.MAPREP.EMPTY:
+                return True
+            else:
+                return False
+        return True
 
     def robotMove(self,robot,movement):
         """
@@ -111,6 +121,8 @@ class World:
         rx,ry = self.posbyrobots[robot]
         dx,dy = movement
         newpos = rx+dx,ry+dy
+        if self.testDiag(robot,movement)!=True:
+            return False
         if self.worldmap[newpos] == utils.MAPREP.EMPTY:
             self.posbyrobots[robot] = newpos
             self.worldmap[newpos] = utils.MAPREP.PEER
