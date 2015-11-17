@@ -1,6 +1,8 @@
 import numpy as np
 import utils
 import random
+import copy
+import sys
 direction = {
 0 : utils.MOVES.NORTH,
 1 : utils.MOVES.NORTHEAST,
@@ -73,7 +75,7 @@ class Robot:
         startmapy = positionyofotherrobot-rpositionOfOtherRobotY
         newsubmap = np.maximum.reduce([self.perceptmap[startmapx:startmapx+shapeofworld[0], startmapy:startmapy+shapeofworld[1]], robotmap])
         self.perceptmap[startmapx:startmapx+shapeofworld[0], startmapy:startmapy+shapeofworld[1]] = newsubmap
-
+        self.perceptmap[self.xmapposition, self.ymapposition]=utils.MAPREP.SELF
         #Update the min and max positions covered by the map
         if self.minxposition>startmapx:
             self.minxposition = startmapx
@@ -95,13 +97,17 @@ class Robot:
             self.updateminimumpositions()
             robots, percept = self.world.getsubmap(self)
             self.expandperceptmap(percept)
-            self.stoppingcriterion()
+            if self.stoppingcriterion()==False:
+                return 'Done'
             return robots
         return []
 
     def randomMove(self):
         """Random movement algorithm"""
         robotslist = self.move(direction[int(random.random()*8)])
+        if robotslist=='Done':
+            return 'Explored'
+
         if len(robotslist) > 0:
             for relativepos,robot in robotslist:
                 self.stitchmaps(relativepos,robot)
@@ -133,5 +139,23 @@ class Robot:
 
     def stoppingcriterion(self):
         maptolookup = self.perceptmap[ self.minxposition: self.maxxposition+1, self.minyposition:self.maxyposition+1 ]
-        currentxposition = self.xmapposition
-        currentyposition = self.ymapposition
+        currentxposition = self.xmapposition-self.minxposition
+        currentyposition = self.ymapposition-self.minyposition
+        shapeoftheworld=(self.maxxposition-self.minxposition, self.maxyposition-self.minyposition)
+        return self.floodfill(copy.deepcopy(self.perceptmap), currentxposition, currentyposition, shapeoftheworld)
+
+    def floodfill(self, worldmap, x, y, shapeoftheperceptworld):
+        ret=False
+        ret1=False
+        if worldmap[x,y]!=utils.MAPREP.BLOCKED:
+            if worldmap[x,y]==utils.MAPREP.UNEXPLORED:
+                return True
+            if x-1>0 and x+1<shapeoftheperceptworld[0]:
+                worldmap[x,y]=utils.MAPREP.BLOCKED
+                ret=self.floodfill(worldmap, x+1, y, shapeoftheperceptworld,t) or self.floodfill(worldmap, x-1, y, shapeoftheperceptworld)
+
+            if y-1>0 and y+1<shapeoftheperceptworld[1]:
+                worldmap[x,y]=utils.MAPREP.BLOCKED
+                ret1=self.floodfill(worldmap, x, y+1, shapeoftheperceptworld,t) or self.floodfill(worldmap, x, y-1, shapeoftheperceptworld)
+            return ret or ret1
+        return False

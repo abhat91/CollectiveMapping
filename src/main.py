@@ -31,14 +31,14 @@ for i in range(0,len(world.robotsbypos)):
 
 showmap.listbox.activate(0)
 #print world.robotsbypos[1,1].perceptmap
+flag=False
 def run(t,worldmap,robotmap,robotid):
-    t = t + 1
-    for i in range(50):
+    global flag
+    if flag==False:
+        t = t + 1
         for robot in world.posbyrobots.keys():
-            robot.randomMove()
-    for i in range(50):
-        for robot in world.posbyrobots.keys():
-            robot.adimove()
+            if robot.randomMove()=='Explored':
+                flag=True
 
     selectedrobot = 0
     if len(showmap.listbox.curselection()) > 0:
