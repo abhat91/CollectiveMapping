@@ -106,7 +106,7 @@ class World:
         rx,ry = self.posbyrobots[robot]
         dx,dy = movement
         if abs(dx) == 1 and abs(dy) == 1:
-            if self.worldmap[rx+dx,0] == utils.MAPREP.EMPTY and self.worldmap[0,ry+dy] == utils.MAPREP.EMPTY:
+            if self.worldmap[rx+dx,ry] == utils.MAPREP.EMPTY and self.worldmap[rx,ry+dy] == utils.MAPREP.EMPTY:
                 return True
             else:
                 return False
