@@ -52,15 +52,21 @@ class Graphics(object):
                 self.canvas.itemconfig(self.rect[i,j], outline=color, fill=color)
         color = self.colors[utils.MAPREP.SELF]
         self.canvas.itemconfig(self.rect[selrobotpos],outline = color,fill = color)
-
-    def updateRobotMap(self, robot,robotid):
+    def updateNewRobotMap(self,robot,robotid):
         blocksize = (self.height-5)/float(self.size/2)
-        robotmap = robot.perceptmap
-        for i in range(robot.minxposition,robot.maxxposition+1):
-            for j in range(robot.minyposition,robot.maxyposition+1):
-                color = self.colors[robotmap[i,j]]
+        print "hi"
+        for i in range(self.rsize):
+            for j in range(self.rsize):
+                color = self.colors[robot.perceptmap[i,j]]
                 self.canvas.itemconfig(self.rmap[i,j], outline=color, fill=color)
         self.robotidtext.set('Robot: ' + str(robotid))
+    def updateRobotMap(self, robot,robotid):
+        blocksize = (self.height-5)/float(self.size/2)
+        for i in range(robot.minxposition,robot.maxxposition+1):
+            for j in range(robot.minyposition,robot.maxyposition+1):
+                color = self.colors[robot.perceptmap[i,j]]
+                self.canvas.itemconfig(self.rmap[i,j], outline=color, fill=color)
+#self.robotidtext.set('Robot: ' + str(robotid))
 
     def creategraphics(self, worldmap,robotmap,robotid):
         self.graphMap(worldmap)

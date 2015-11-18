@@ -47,13 +47,13 @@ def run(t):
     if len(showmap.listbox.curselection()) > 0:
         selectedrobot = int(showmap.listbox.curselection()[0])
     if previousRobot != selectedrobot:
-        showmap.root.after(1,showmap.graphRobotMap,world.posbyrobots.keys()[selectedrobot],selectedrobot)
+        showmap.root.after(2,showmap.updateNewRobotMap,world.posbyrobots.keys()[selectedrobot],selectedrobot)
         previousRobot = selectedrobot
     else:
-        showmap.root.after(1,showmap.updateRobotMap,world.posbyrobots.keys()[selectedrobot],selectedrobot)
+        showmap.root.after(2,showmap.updateRobotMap,world.posbyrobots.keys()[selectedrobot],selectedrobot)
     #print world.posbyrobots[world.posbyrobots.keys()[selectedrobot]]
-    showmap.root.after(1,showmap.updateGraphics,world.worldmap,world.posbyrobots.keys()[selectedrobot],world.posbyrobots[world.posbyrobots.keys()[selectedrobot]],selectedrobot,t)
-    showmap.root.after(4,run,t)
+    showmap.root.after(2,showmap.updateGraphics,world.worldmap,world.posbyrobots.keys()[selectedrobot],world.posbyrobots[world.posbyrobots.keys()[selectedrobot]],selectedrobot,t)
+    showmap.root.after(2,run,t)
 
 
 showmap.creategraphics(world.worldmap, world.posbyrobots.keys()[selectedrobot], selectedrobot)

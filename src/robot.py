@@ -5,13 +5,13 @@ import copy
 import sys
 direction = {
 0 : utils.MOVES.NORTH,
-#1 : utils.MOVES.NORTHEAST,
-1 : utils.MOVES.EAST,
-#3 : utils.MOVES.SOUTHEAST,
-2 : utils.MOVES.SOUTH,
-#5 : utils.MOVES.SOUTHWEST,
-3 : utils.MOVES.WEST,
-#7 : utils.MOVES.NORTHWEST
+1 : utils.MOVES.NORTHEAST,
+2 : utils.MOVES.EAST,
+3 : utils.MOVES.SOUTHEAST,
+4 : utils.MOVES.SOUTH,
+5 : utils.MOVES.SOUTHWEST,
+6 : utils.MOVES.WEST,
+7 : utils.MOVES.NORTHWEST
 
 
 }
@@ -126,6 +126,9 @@ class Robot:
         empty = []
         for i in range(len(direction)):
             if self.currentPercept[direction[i][0]+1,direction[i][1]+1] == utils.MAPREP.EMPTY:
+                if abs(direction[i][0]) == 1 and abs(direction[i][1]) == 1:
+                    if self.currentPercept[direction[i][0],self.perceptradius] != utils.MAPREP.EMPTY or self.currentPercept[self.perceptradius,direction[i][1]] == utils.MAPREP.EMPTY:
+                        continue
                 empty.append(i)
         return empty
     def adimove(self):
