@@ -60,7 +60,7 @@ class World:
                             self.createRobot((x+i,y-radius))
                             return
                 for j in range(-radius,radius):#Left  wall
-                    if y+j >= 0 and y+j < my and x + radius >= 0:
+                    if y+j >= 0 and y+j < my and x - radius >= 0:
                         if self.worldmap[x-radius,y+j] == utils.MAPREP.EMPTY:
                             self.createRobot((x-radius,y+j))
                             return
@@ -88,6 +88,8 @@ class World:
             listofrobots=[]
             for robotlocation in robotsrelativelocations:
                 listofrobots.append(((robotlocation[0], robotlocation[1]), self.robotsbypos[(startx+robotlocation[0], starty+robotlocation[1])]))
+    
+    #print "p",currentPercept
         return listofrobots, currentPercept
 
     #Given the submap, it returns the index of the robots in the map

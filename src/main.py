@@ -7,6 +7,7 @@ import utils
 import graphics
 import Tkinter as tk
 import random
+import sys
 
 def convertToInteger(multidimentionalList):
     """Converts to integer"""
@@ -22,8 +23,9 @@ def readmap():
 
 
 selectedrobot = 0
-
+previousRobot = 0
 worldmap=readmap()
+#world=world.World(np.array(worldmap), [(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1),(1,1)])
 world=world.World(np.array(worldmap), [(5,3),(5,4),(15,15),(15,1),(1,15),(1,16),(1,17),(2,15),(2,15),(0,15),(0,5),(11,15),(12,15),(12,13),(1,15),(14,1),(17,1),(15,15),(1,1)])
 showmap=graphics.Graphics(len(worldmap))
 for i in range(0,len(world.robotsbypos)):
@@ -32,21 +34,28 @@ for i in range(0,len(world.robotsbypos)):
 showmap.listbox.activate(0)
 #print world.robotsbypos[1,1].perceptmap
 flag=False
-def run(t,worldmap,robotmap,robotid):
+def run(t):
     global flag
+    global selectedrobot
+    global previousRobot
+    global world
     if flag==False:
         t = t + 1
         for robot in world.posbyrobots.keys():
             if robot.randomMove()=='Explored':
                 flag=True
-
-    selectedrobot = 0
     if len(showmap.listbox.curselection()) > 0:
         selectedrobot = int(showmap.listbox.curselection()[0])
-    showmap.root.after(10,run, t,world.worldmap,world.posbyrobots.keys()[selectedrobot].perceptmap,selectedrobot)
-    showmap.root.after(1,showmap.updateGraphics,worldmap,robotmap,robotid,t)
+    if previousRobot != selectedrobot:
+        showmap.root.after(1,showmap.graphRobotMap,world.posbyrobots.keys()[selectedrobot],selectedrobot)
+        previousRobot = selectedrobot
+    else:
+        showmap.root.after(1,showmap.updateRobotMap,world.posbyrobots.keys()[selectedrobot],selectedrobot)
+    #print world.posbyrobots[world.posbyrobots.keys()[selectedrobot]]
+    showmap.root.after(1,showmap.updateGraphics,world.worldmap,world.posbyrobots.keys()[selectedrobot],world.posbyrobots[world.posbyrobots.keys()[selectedrobot]],selectedrobot,t)
+    showmap.root.after(4,run,t)
 
 
-showmap.creategraphics(world.worldmap, world.posbyrobots.keys()[selectedrobot].perceptmap, selectedrobot)
-showmap.root.after(1,run, 0,world.worldmap,world.posbyrobots.keys()[selectedrobot].perceptmap,selectedrobot)
+showmap.creategraphics(world.worldmap, world.posbyrobots.keys()[selectedrobot], selectedrobot)
+showmap.root.after(1,run, 0)
 showmap.root.mainloop()

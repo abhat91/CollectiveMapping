@@ -5,13 +5,13 @@ import copy
 import sys
 direction = {
 0 : utils.MOVES.NORTH,
-1 : utils.MOVES.NORTHEAST,
-2 : utils.MOVES.EAST,
-3 : utils.MOVES.SOUTHEAST,
-4 : utils.MOVES.SOUTH,
-5 : utils.MOVES.SOUTHWEST,
-6 : utils.MOVES.WEST,
-7 : utils.MOVES.NORTHWEST
+#1 : utils.MOVES.NORTHEAST,
+1 : utils.MOVES.EAST,
+#3 : utils.MOVES.SOUTHEAST,
+2 : utils.MOVES.SOUTH,
+#5 : utils.MOVES.SOUTHWEST,
+3 : utils.MOVES.WEST,
+#7 : utils.MOVES.NORTHWEST
 
 
 }
@@ -24,6 +24,7 @@ class Robot:
         positions"""
         l = maplen
         self.perceptmap = np.zeros( shape= (2*l, 2*l), dtype=int)
+        self.currentPercept = np.zeros((self.perceptradius*2+1,self.perceptradius*2+1))
         self.xmapposition = l
         self.ymapposition = l
 
@@ -36,14 +37,17 @@ class Robot:
         self.maxyposition = l + self.perceptradius
         self.world = world
 
-    def expandperceptmap(self, perceptMatrix):
+    def expandperceptmap(self):
         """Given the percept matrix, the robot adds the percept to the map of the robot"""
         mapstartX = self.xmapposition - (self.perceptradius)
         mapstartY = self.ymapposition- ( self.perceptradius)
         #Adds the percepts to the robot's map of the world
+        #print self.currentPercept
         for i in range( (2*self.perceptradius) + 1 ):
             for j in range( (2*self.perceptradius) + 1 ):
-                self.perceptmap[mapstartX+i][mapstartY+j] = perceptMatrix[i][j]
+                self.perceptmap[mapstartX+i,mapstartY+j] = self.currentPercept[i,j]
+        self.perceptmap[self.xmapposition,self.ymapposition] = utils.MAPREP.SELF
+        self.perceptmap[self.perceptmap == utils.MAPREP.PEER] = utils.MAPREP.EMPTY
 
     def updateminimumpositions(self):
         """Updates the minimum positions of each robot"""
@@ -65,7 +69,7 @@ class Robot:
         """Given 2 robots in proximity, the map of the other robot is taken and stitched to the current map to make a larger map of the environment"""
         rpositionOfOtherRobotX = otherRobot.xmapposition - otherRobot.minxposition
         rpositionOfOtherRobotY = otherRobot.ymapposition - otherRobot.minyposition
-        robotmap = otherRobot.perceptmap[ otherRobot.minxposition:otherRobot.maxxposition+1, otherRobot.minyposition:otherRobot.maxyposition+1 ]
+        robotmap = copy.deepcopy(otherRobot.perceptmap[ otherRobot.minxposition:otherRobot.maxxposition+1, otherRobot.minyposition:otherRobot.maxyposition+1 ])
         robotmap[robotmap == utils.MAPREP.SELF] = utils.MAPREP.EMPTY
         robotmap[robotmap == utils.MAPREP.PEER] = utils.MAPREP.EMPTY
         shapeofworld = np.shape(robotmap)
@@ -95,23 +99,35 @@ class Robot:
             self.ymapposition += dir[1]
             self.updatemaximumpositions()
             self.updateminimumpositions()
-            robots, percept = self.world.getsubmap(self)
-            self.expandperceptmap(percept)
-            if self.stoppingcriterion()==False:
-                return 'Done'
-            return robots
-        return []
-
+    
     def randomMove(self):
         """Random movement algorithm"""
-        robotslist = self.move(direction[int(random.random()*8)])
-        if robotslist=='Done':
+        robots, self.currentPercept = self.world.getsubmap(self)
+        self.expandperceptmap()
+        if self.stoppingcriterion()==False:
             return 'Explored'
-
-        if len(robotslist) > 0:
-            for relativepos,robot in robotslist:
+        if len(robots) > 0:
+            for relativepos,robot in robots:
                 self.stitchmaps(relativepos,robot)
-
+        possiblemoves= self.getEmptyNeighbors()
+        if len(possiblemoves)>0:
+            #print possiblemoves
+            self.move(direction[possiblemoves[int(random.random()*len(possiblemoves))]])
+            robots, self.currentPercept = self.world.getsubmap(self)
+            self.expandperceptmap()
+            if self.stoppingcriterion()==False:
+                return 'Explored'
+            if len(robots) > 0:
+                for relativepos,robot in robots:
+                    self.stitchmaps(relativepos,robot)
+        self.perceptmap[self.xmapposition,self.ymapposition]=utils.MAPREP.SELF
+            
+    def getEmptyNeighbors(self):
+        empty = []
+        for i in range(len(direction)):
+            if self.currentPercept[direction[i][0]+1,direction[i][1]+1] == utils.MAPREP.EMPTY:
+                empty.append(i)
+        return empty
     def adimove(self):
         #Move randomly first a few times
         dim=len(self.perceptmap)/4

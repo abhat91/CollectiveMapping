@@ -32,7 +32,8 @@ class Graphics(object):
         self.canvas.create_window(self.height/2, self.height+160,window = self.listbox)
         self.timetext.set('Time: 0')
 
-    def graphRobotMap(self, robotmap,robotid):
+    def graphRobotMap(self, robot,robotid):
+        robotmap = robot.perceptmap
         self.canvas.create_line(self.height+1,0,self.height,2*self.height, width = 5)
         blocksize = (self.height-5)/float(self.size)
         for i in range(self.rsize):
@@ -43,17 +44,20 @@ class Graphics(object):
         self.canvas.create_window(self.height/2, self.height + 60, window=self.robotlabel)
         self.robotidtext.set('Robot: ' + str(robotid))
 
-    def updateMap(self, worldmap):
+    def updateMap(self, worldmap,selrobotpos):
         blocksize = (self.height-5)/float(self.size)
         for i in range(self.size):
             for j in range(self.size):
                 color =self.colors[worldmap[i,j]]
                 self.canvas.itemconfig(self.rect[i,j], outline=color, fill=color)
+        color = self.colors[utils.MAPREP.SELF]
+        self.canvas.itemconfig(self.rect[selrobotpos],outline = color,fill = color)
 
-    def updateRobotMap(self, robotmap,robotid):
+    def updateRobotMap(self, robot,robotid):
         blocksize = (self.height-5)/float(self.size/2)
-        for i in range(self.rsize):
-            for j in range(self.rsize):
+        robotmap = robot.perceptmap
+        for i in range(robot.minxposition,robot.maxxposition+1):
+            for j in range(robot.minyposition,robot.maxyposition+1):
                 color = self.colors[robotmap[i,j]]
                 self.canvas.itemconfig(self.rmap[i,j], outline=color, fill=color)
         self.robotidtext.set('Robot: ' + str(robotid))
@@ -62,7 +66,7 @@ class Graphics(object):
         self.graphMap(worldmap)
         self.graphRobotMap(robotmap,robotid)
 
-    def updateGraphics(self, worldmap,robotmap,robotid,t):
-        self.updateMap(worldmap)
-        self.updateRobotMap(robotmap,robotid)
+    def updateGraphics(self, worldmap,robotmap,selrobotpos,robotid,t):
+        self.updateMap(worldmap,selrobotpos)
+        #self.updateRobotMap(robotmap,robotid)
         self.timetext.set('Time: ' + str(t))
