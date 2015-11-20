@@ -182,6 +182,48 @@ class Robot:
                 self.stitchmaps(relativepos,robot)
         self.perceptmap[self.xmapposition,self.ymapposition]=utils.MAPREP.SELF
 
+    def getKey(self,item):
+        return item[0]
+
+    def testDiag(self,movement):
+        rx,ry = self.xmapposition,self.ymapposition
+        dx,dy = movement
+        if abs(dx) == 1 and abs(dy) == 1:
+            if self.perceptmap[rx+dx,ry] == utils.MAPREP.EMPTY and self.perceptmap[rx,ry+dy] == utils.MAPREP.EMPTY:
+                return True
+            else:
+                return False
+        return True
+
+    def greedymigmove(self):
+        #Move greedily MIG
+        robots, self.currentPercept = self.world.getsubmap(self)
+        self.expandperceptmap()
+        #options=self.perceptmap[self.xmapposition-self.perceptradius:self.xmapposition+self.perceptradius+1,self.ymapposition-self.perceptradius:self.ymapposition+self.perceptradius+1]
+        #print options
+        options = []
+        for i in range(-self.perceptradius,self.perceptradius+1):
+            for j in range(-self.perceptradius,self.perceptradius+1):
+                if (i!=0 or j!=0) and self.currentPercept[i+1,j+1]==utils.MAPREP.EMPTY and self.testDiag((i,j)):
+                    option = self.perceptmap[self.xmapposition+i-self.perceptradius:self.xmapposition+i+self.perceptradius+1,self.ymapposition+j-self.perceptradius:self.ymapposition+j+self.perceptradius+1]
+                    options.append([np.count_nonzero(option),(i,j)])
+        options=sorted(options, key=self.getKey)
+        #print options
+        if options != []:
+            if options[0][0] <(1+2*self.perceptradius)*(1+2*self.perceptradius): 
+                direct = (options[0][1][0],options[0][1][1])
+            else:
+                direct = random.choice(options)
+                direct = (direct[1][0],direct[1][1])
+            #print direct
+            self.move(direct)
+            robots, self.currentPercept = self.world.getsubmap(self)   
+            #print robotslist
+            if robots=='Done':
+                return 'Explored'
+            if len(robots) > 0:
+                for relativepos,robot in robots:
+                    self.stitchmaps(relativepos,robot)
 
     def stoppingcriterion(self):
         maptolookup = self.perceptmap[ self.minxposition: self.maxxposition+1, self.minyposition:self.maxyposition+1 ]
