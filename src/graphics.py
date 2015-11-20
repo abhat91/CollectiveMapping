@@ -54,7 +54,6 @@ class Graphics(object):
         self.canvas.itemconfig(self.rect[selrobotpos],outline = color,fill = color)
     def updateNewRobotMap(self,robot,robotid):
         blocksize = (self.height-5)/float(self.size/2)
-        print "hi"
         for i in range(self.rsize):
             for j in range(self.rsize):
                 color = self.colors[robot.perceptmap[i,j]]

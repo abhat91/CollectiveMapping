@@ -131,29 +131,56 @@ class Robot:
                         continue
                 empty.append(i)
         return empty
-    def adimove(self):
+    def gradientmove(self):
         #Move randomly first a few times
-        dim=len(self.perceptmap)/4
-        northwest=self.perceptmap[self.xmapposition-dim:self.xmapposition, self.ymapposition-dim:self.ymapposition]
-        northeast=self.perceptmap[self.xmapposition:self.xmapposition+dim, self.ymapposition-dim:self.ymapposition]
-        southwest=self.perceptmap[self.xmapposition-dim:self.xmapposition, self.ymapposition:self.ymapposition+dim]
-        southeast=self.perceptmap[self.xmapposition:self.xmapposition+dim, self.ymapposition:self.ymapposition+dim]
+        sizeofsubblockx=(self.maxxposition-self.minxposition)/2
+        sizeofsubblocky=(self.maxyposition-self.minyposition)/2
+        northwest=self.perceptmap[self.minxposition:self.minxposition+sizeofsubblockx, self.minyposition:self.minyposition+sizeofsubblocky]
+        northeast=self.perceptmap[self.minxposition:self.minxposition+sizeofsubblockx, self.minyposition+sizeofsubblocky:self.maxyposition]
+        southwest=self.perceptmap[self.minxposition+sizeofsubblockx:self.maxxposition, self.minyposition:self.minyposition+sizeofsubblocky]
+        southeast=self.perceptmap[self.minxposition+sizeofsubblockx:self.maxxposition, self.minyposition+sizeofsubblocky: self.maxyposition]
         val=[np.count_nonzero(northwest), np.count_nonzero(northeast), np.count_nonzero(southwest), np.count_nonzero(southeast)]
         if val.index(min(val))==0:
-            x=[utils.MOVES.NORTHWEST, utils.MOVES.NORTH, utils.MOVES.WEST]
-            robotslist = self.move(random.choice(x))
+            if random.random()<0.4:
+                x=[utils.MOVES.NORTHWEST, utils.MOVES.NORTH, utils.MOVES.WEST]
+            else:
+                p=[utils.MOVES.NORTHEAST, utils.MOVES.NORTH, utils.MOVES.EAST]
+                y=[utils.MOVES.SOUTHWEST, utils.MOVES.SOUTH, utils.MOVES.WEST]
+                z=[utils.MOVES.SOUTHEAST, utils.MOVES.EAST]
+                x=random.choice([p,y,z])
         elif val.index(min(val))==1:
-            x=[utils.MOVES.NORTHEAST, utils.MOVES.NORTH, utils.MOVES.EAST]
-            robotslist = self.move(random.choice(x))
+            if random.random()<0.4:
+                x=[utils.MOVES.NORTHEAST, utils.MOVES.NORTH, utils.MOVES.EAST]
+            else:
+                p=[utils.MOVES.WEST]
+                y=[utils.MOVES.SOUTHWEST, utils.MOVES.SOUTH, utils.MOVES.WEST]
+                z=[utils.MOVES.SOUTHEAST, utils.MOVES.EAST]
+                x=random.choice([p,y,z])
         elif val.index(min(val))==2:
-            x=[utils.MOVES.SOUTHWEST, utils.MOVES.SOUTH, utils.MOVES.WEST]
-            robotslist = self.move(random.choice(x))
+            if random.random()<0.4:
+                x=[utils.MOVES.SOUTHWEST, utils.MOVES.SOUTH, utils.MOVES.WEST]
+            else:
+                p=[utils.MOVES.NORTH, utils.MOVES.WEST]
+                y=[utils.MOVES.NORTHEAST, utils.MOVES.EAST]
+                z=[utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH]
+                x=random.choice([p,y,z])                
         elif val.index(min(val))==3:
-            x=[utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH, utils.MOVES.EAST]
-            robotslist = self.move(random.choice(x))
-        if len(robotslist) > 0:
-            for relativepos,robot in robotslist:
+            if random.random()<0.3:
+                x=[utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH, utils.MOVES.EAST]
+            else:
+                p=[utils.MOVES.WEST]
+                y=[utils.MOVES.NORTHEAST, utils.MOVES.NORTH, utils.MOVES.EAST]
+                z=[utils.MOVES.SOUTHWEST, utils.MOVES.SOUTH]
+                x=random.choice([p,y,z])              
+        self.move(random.choice(x))
+        robots, self.currentPercept = self.world.getsubmap(self)
+        self.expandperceptmap()
+        if self.stoppingcriterion()==False:
+            return 'Explored'
+        if len(robots) > 0:
+            for relativepos,robot in robots:
                 self.stitchmaps(relativepos,robot)
+        self.perceptmap[self.xmapposition,self.ymapposition]=utils.MAPREP.SELF
 
 
     def stoppingcriterion(self):
@@ -171,10 +198,10 @@ class Robot:
                 return True
             if x-1>0 and x+1<shapeoftheperceptworld[0]:
                 worldmap[x,y]=utils.MAPREP.BLOCKED
-                ret=self.floodfill(worldmap, x+1, y, shapeoftheperceptworld,t) or self.floodfill(worldmap, x-1, y, shapeoftheperceptworld)
+                ret=self.floodfill(worldmap, x+1, y, shapeoftheperceptworld) or self.floodfill(worldmap, x-1, y, shapeoftheperceptworld)
 
             if y-1>0 and y+1<shapeoftheperceptworld[1]:
                 worldmap[x,y]=utils.MAPREP.BLOCKED
-                ret1=self.floodfill(worldmap, x, y+1, shapeoftheperceptworld,t) or self.floodfill(worldmap, x, y-1, shapeoftheperceptworld)
+                ret1=self.floodfill(worldmap, x, y+1, shapeoftheperceptworld) or self.floodfill(worldmap, x, y-1, shapeoftheperceptworld)
             return ret or ret1
         return False
