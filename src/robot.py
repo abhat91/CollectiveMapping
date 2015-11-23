@@ -104,21 +104,26 @@ class Robot:
     def move(self,dir):
         """Moves the robot by one position and updates the map"""
         if self.world.robotMove(self, dir):
+            self.perceptmap[self.xmapposition,self.ymapposition]=utils.MAPREP.EMPTY
         #move successful, Update percept map
             self.xmapposition += dir[0]
             self.ymapposition += dir[1]
             self.updatemaximumpositions()
             self.updateminimumpositions()
+            self.perceptmap[self.xmapposition,self.ymapposition]=utils.MAPREP.SELF
     def bayesMove(self):
         '''@author:renatogg - Moves to a direction with probability given by previous movement'''
-        robots,self.currentPercept = self.world.getsubmap(self)
+        robots, self.currentPercept = self.world.getsubmap(self)
         self.expandperceptmap()
+        if self.stoppingcriterion()==True:
+            return 'Explored'
         if len(robots) > 0:
             for relativepos,robot in robots:
                 self.stitchmaps(relativepos,robot)
+        #robot.stitchmaps((-relativepos[0],-relativepos[1]),self)
         if self.previousMove == None:
             return self.randomMove()
-        possiblemoves = self.getEmptyNeighbors()
+        possiblemoves = self.getPossibleMoves()
         if len(possiblemoves) > 0:
             totalweight = sum([previousMoveProbs[self.previousMove][i] for i in possiblemoves])
             decision = random.random()*totalweight
@@ -129,40 +134,25 @@ class Robot:
                 cumulative+=previousMoveProbs[self.previousMove][possiblemoves[j]]
             self.previousMove =possiblemoves[j]
             self.move(direction[self.previousMove])
-            robots, self.currentPercept = self.world.getsubmap(self)
-            self.expandperceptmap()
-            if self.stoppingcriterion()==False:
-                return 'Explored'
-            if len(robots) > 0:
-                for relativepos,robot in robots:
-                    self.stitchmaps(relativepos,robot)
-            self.perceptmap[self.xmapposition,self.ymapposition]=utils.MAPREP.SELF
-
     def randomMove(self):
         """Random movement algorithm"""
         robots, self.currentPercept = self.world.getsubmap(self)
         self.expandperceptmap()
-        if self.stoppingcriterion()==False:
+        if self.stoppingcriterion()==True:
             return 'Explored'
         if len(robots) > 0:
             for relativepos,robot in robots:
                 self.stitchmaps(relativepos,robot)
-        possiblemoves= self.getEmptyNeighbors()
+        #robot.stitchmaps((-relativepos[0],-relativepos[1]),self)
+        possiblemoves= self.getPossibleMoves()
         if len(possiblemoves)>0:
             #print possiblemoves
             self.previousMove = possiblemoves[int(random.random()*len(possiblemoves))]
             self.move(direction[self.previousMove])
-            robots, self.currentPercept = self.world.getsubmap(self)
-            self.expandperceptmap()
-            if self.stoppingcriterion()==False:
-                return 'Explored'
-            if len(robots) > 0:
-                for relativepos,robot in robots:
-                    self.stitchmaps(relativepos,robot)
-        self.perceptmap[self.xmapposition,self.ymapposition]=utils.MAPREP.SELF
-            
-    def getEmptyNeighbors(self):
-        empty = []
+
+    
+    def getPossibleMoves(self):
+        possiblemoves = []
         for i in direction.keys():
             dir = direction[i]
             dx = dir[0]
@@ -170,10 +160,10 @@ class Robot:
             if self.currentPercept[self.perceptradius+dx,self.perceptradius+dy] == utils.MAPREP.EMPTY:#direction it wants to move is empty
                 if abs(dx) == 1 and abs(dy) == 1:#if direction is diagonal
                     if self.currentPercept[self.perceptradius+dx,self.perceptradius] == utils.MAPREP.EMPTY and self.currentPercept[self.perceptradius,self.perceptradius+dy] == utils.MAPREP.EMPTY:#if diagonal is clear
-                        empty.append(i)
+                        possiblemoves.append(i)
                 else:#if it's not a diagonal
-                    empty.append(i)
-        return empty
+                    possiblemoves.append(i)
+        return possiblemoves
 
     def gradientmove(self):
         #Move randomly first a few times
@@ -219,7 +209,7 @@ class Robot:
         self.move(random.choice(x))
         robots, self.currentPercept = self.world.getsubmap(self)
         self.expandperceptmap()
-        if self.stoppingcriterion()==False:
+        if self.stoppingcriterion():
             return 'Explored'
         if len(robots) > 0:
             for relativepos,robot in robots:
@@ -229,65 +219,62 @@ class Robot:
     def getKey(self,item):
         return item[0]
 
-    def testDiag(self,movement):
-        rx,ry = self.xmapposition,self.ymapposition
-        dx,dy = movement
-        if abs(dx) == 1 and abs(dy) == 1:
-            if self.perceptmap[rx+dx,ry] == utils.MAPREP.EMPTY and self.perceptmap[rx,ry+dy] == utils.MAPREP.EMPTY:
-                return True
-            else:
-                return False
-        return True
-
     def greedymigmove(self):
         #Move greedily MIG
         robots, self.currentPercept = self.world.getsubmap(self)
         self.expandperceptmap()
+        if len(robots) > 0:
+            for relativepos,robot in robots:
+                self.stitchmaps(relativepos,robot)
+        if self.stoppingcriterion():
+            return 'Explored'
         #options=self.perceptmap[self.xmapposition-self.perceptradius:self.xmapposition+self.perceptradius+1,self.ymapposition-self.perceptradius:self.ymapposition+self.perceptradius+1]
         #print options
-        options = []
-        for i in range(-self.perceptradius,self.perceptradius+1):
-            for j in range(-self.perceptradius,self.perceptradius+1):
-                if (i!=0 or j!=0) and self.currentPercept[i+1,j+1]==utils.MAPREP.EMPTY and self.testDiag((i,j)):
-                    option = self.perceptmap[self.xmapposition+i-self.perceptradius:self.xmapposition+i+self.perceptradius+1,self.ymapposition+j-self.perceptradius:self.ymapposition+j+self.perceptradius+1]
-                    options.append([np.count_nonzero(option),(i,j)])
+        options=[]
+        possiblemoves = self.getPossibleMoves()
+        for move in possiblemoves:
+            i,j = direction[move]
+            option = self.perceptmap[self.xmapposition+i-self.perceptradius:self.xmapposition+i+self.perceptradius+1,self.ymapposition+j-self.perceptradius:self.ymapposition+j+self.perceptradius+1]
+            options.append([np.count_nonzero(option),(i,j)])
+#        for i in range(-self.perceptradius,self.perceptradius+1):
+#            for j in range(-self.perceptradius,self.perceptradius+1):
+#                if (i!=0 or j!=0) and self.currentPercept[i+1,j+1]==utils.MAPREP.EMPTY and self.testDiag((i,j)):
+#                    option = self.perceptmap[self.xmapposition+i-self.perceptradius:self.xmapposition+i+self.perceptradius+1,self.ymapposition+j-self.perceptradius:self.ymapposition+j+self.perceptradius+1]
+#                    options.append([np.count_nonzero(option),(i,j)])
         options=sorted(options, key=self.getKey)
         #print options
         if options != []:
             if options[0][0] <(1+2*self.perceptradius)*(1+2*self.perceptradius): 
                 direct = (options[0][1][0],options[0][1][1])
             else:
-                direct = random.choice(options)
-                direct = (direct[1][0],direct[1][1])
+                return self.bayesMove()
             #print direct
             self.move(direct)
-            robots, self.currentPercept = self.world.getsubmap(self)   
-            #print robotslist
-            if robots=='Done':
-                return 'Explored'
-            if len(robots) > 0:
-                for relativepos,robot in robots:
-                    self.stitchmaps(relativepos,robot)
 
     def stoppingcriterion(self):
-        maptolookup = self.perceptmap[ self.minxposition: self.maxxposition+1, self.minyposition:self.maxyposition+1 ]
-        currentxposition = self.xmapposition-self.minxposition
-        currentyposition = self.ymapposition-self.minyposition
-        shapeoftheworld=(self.maxxposition-self.minxposition, self.maxyposition-self.minyposition)
-        return self.floodfill(copy.deepcopy(self.perceptmap), currentxposition, currentyposition, shapeoftheworld)
+        #print "entering"
+        maptolookup = self.perceptmap[self.minxposition-1: self.maxxposition+2, self.minyposition-1:self.maxyposition+2 ]
+        currentxposition = self.xmapposition-self.minxposition+1
+        currentyposition = self.ymapposition-self.minyposition+1
+        shapeoftheworld=(self.maxxposition-self.minxposition+2, self.maxyposition-self.minyposition+2)
+        return self.floodfill(copy.deepcopy(maptolookup), currentxposition, currentyposition, shapeoftheworld)
 
     def floodfill(self, worldmap, x, y, shapeoftheperceptworld):
         ret=False
         ret1=False
+        #print worldmap
+        
         if worldmap[x,y]!=utils.MAPREP.BLOCKED:
+            
             if worldmap[x,y]==utils.MAPREP.UNEXPLORED:
-                return True
-            if x-1>0 and x+1<shapeoftheperceptworld[0]:
+                return False
+            if x-1>=0 and x+1<shapeoftheperceptworld[0]:
+                
                 worldmap[x,y]=utils.MAPREP.BLOCKED
-                ret=self.floodfill(worldmap, x+1, y, shapeoftheperceptworld) or self.floodfill(worldmap, x-1, y, shapeoftheperceptworld)
-
-            if y-1>0 and y+1<shapeoftheperceptworld[1]:
+                ret=self.floodfill(worldmap, x+1, y, shapeoftheperceptworld) and self.floodfill(worldmap, x-1, y, shapeoftheperceptworld)
+            
+            if y-1>=0 and y+1<shapeoftheperceptworld[1]:
                 worldmap[x,y]=utils.MAPREP.BLOCKED
-                ret1=self.floodfill(worldmap, x, y+1, shapeoftheperceptworld) or self.floodfill(worldmap, x, y-1, shapeoftheperceptworld)
-            return ret or ret1
-        return False
+                ret1=self.floodfill(worldmap, x, y+1, shapeoftheperceptworld) and self.floodfill(worldmap, x, y-1, shapeoftheperceptworld)
+            return ret and ret1
+        return True
