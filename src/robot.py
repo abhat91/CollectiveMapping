@@ -109,6 +109,7 @@ class Robot:
             self.ymapposition += dir[1]
             self.updatemaximumpositions()
             self.updateminimumpositions()
+    
     def bayesMove(self):
         '''@author:renatogg - Moves to a direction with probability given by previous movement'''
         robots,self.currentPercept = self.world.getsubmap(self)
@@ -189,30 +190,31 @@ class Robot:
         if len(robots) > 0:
             for relativepos,robot in robots:
                 self.stitchmaps(relativepos,robot)
-        if val.index(max(val))==0:
-            if random.random()<0.3:
-                x=[utils.MOVES.NORTHWEST, utils.MOVES.NORTH, utils.MOVES.WEST]
-            else:
-                x=[utils.MOVES.NORTHEAST, utils.MOVES.EAST, utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH, utils.MOVES.SOUTHWEST]
-            self.move(random.choice(x))
-        elif val.index(max(val))==1:
-            if random.random()<0.3:
-                x=[utils.MOVES.NORTHEAST, utils.MOVES.NORTH, utils.MOVES.EAST]
-            else:
-                x=[utils.MOVES.NORTHWEST, utils.MOVES.WEST, utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH, utils.MOVES.SOUTHWEST]
-            self.move(random.choice(x))
-        elif val.index(max(val))==2:
-            if random.random()<0.3:
-                x=[utils.MOVES.SOUTHWEST, utils.MOVES.SOUTH, utils.MOVES.WEST]
-            else:
-                x=[utils.MOVES.NORTH, utils.MOVES.NORTHWEST, utils.MOVES.NORTHEAST, utils.MOVES.EAST, utils.MOVES.SOUTHEAST]
-            self.move(random.choice(x))               
-        elif val.index(max(val))==3:
-            if random.random()<0.3:
-                x=[utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH, utils.MOVES.EAST]
-            else:
-                x=[utils.MOVES.SOUTHWEST, utils.MOVES.WEST, utils.MOVES.NORTHWEST, utils.MOVES.NORTH, utils.MOVES.NORTHEAST]
-            self.move(random.choice(x))   
+        while True:
+            if val.index(max(val))==0:
+                if random.random()<0.3:
+                    x=[utils.MOVES.NORTHWEST, utils.MOVES.NORTH, utils.MOVES.WEST]
+                else:
+                    x=[utils.MOVES.NORTHEAST, utils.MOVES.EAST, utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH, utils.MOVES.SOUTHWEST]
+            elif val.index(max(val))==1:
+                if random.random()<0.3:
+                    x=[utils.MOVES.NORTHEAST, utils.MOVES.NORTH, utils.MOVES.EAST]
+                else:
+                    x=[utils.MOVES.NORTHWEST, utils.MOVES.WEST, utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH, utils.MOVES.SOUTHWEST]
+            elif val.index(max(val))==2:
+                if random.random()<0.3:
+                    x=[utils.MOVES.SOUTHWEST, utils.MOVES.SOUTH, utils.MOVES.WEST]
+                else:
+                    x=[utils.MOVES.NORTH, utils.MOVES.NORTHWEST, utils.MOVES.NORTHEAST, utils.MOVES.EAST, utils.MOVES.SOUTHEAST]             
+            elif val.index(max(val))==3:
+                if random.random()<0.3:
+                    x=[utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH, utils.MOVES.EAST]
+                else:
+                    x=[utils.MOVES.SOUTHWEST, utils.MOVES.WEST, utils.MOVES.NORTHWEST, utils.MOVES.NORTH, utils.MOVES.NORTHEAST]
+            movechoice=random.choice(x)
+            if self.perceptmap[self.xmapposition+movechoice[0], self.ymapposition+movechoice[1]]!=utils.MAPREP.BLOCKED:
+                self.move(movechoice)
+                break
         robots, self.currentPercept = self.world.getsubmap(self)
         self.expandperceptmap()
         if self.stoppingcriterion()==False:
