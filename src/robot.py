@@ -45,7 +45,7 @@ class Robot:
         self.maxyposition = l + self.perceptradius
         self.world = world
         self.previousMove = None
-    
+        self.updated = False
 
     def expandperceptmap(self):
         """Given the percept matrix, the robot adds the percept to the map of the robot"""
@@ -113,13 +113,9 @@ class Robot:
             self.perceptmap[self.xmapposition,self.ymapposition]=utils.MAPREP.SELF
     def bayesMove(self):
         '''@author:renatogg - Moves to a direction with probability given by previous movement'''
-        robots, self.currentPercept = self.world.getsubmap(self)
-        self.expandperceptmap()
-        if self.stoppingcriterion()==True:
+        self.updatePercepts()
+        if self.stoppingcriterion():
             return 'Explored'
-        if len(robots) > 0:
-            for relativepos,robot in robots:
-                self.stitchmaps(relativepos,robot)
         #robot.stitchmaps((-relativepos[0],-relativepos[1]),self)
         if self.previousMove == None:
             return self.randomMove()
@@ -136,13 +132,9 @@ class Robot:
             self.move(direction[self.previousMove])
     def randomMove(self):
         """Random movement algorithm"""
-        robots, self.currentPercept = self.world.getsubmap(self)
-        self.expandperceptmap()
-        if self.stoppingcriterion()==True:
+        self.updatePercepts()
+        if self.stoppingcriterion():
             return 'Explored'
-        if len(robots) > 0:
-            for relativepos,robot in robots:
-                self.stitchmaps(relativepos,robot)
         #robot.stitchmaps((-relativepos[0],-relativepos[1]),self)
         possiblemoves= self.getPossibleMoves()
         if len(possiblemoves)>0:
@@ -165,6 +157,16 @@ class Robot:
                     possiblemoves.append(i)
         return possiblemoves
 
+    def updatePercepts(self):
+        if (not self.updated):
+            robots, self.currentPercept = self.world.getsubmap(self)
+            self.expandperceptmap()
+            self.updated = True
+            if len(robots) > 0:
+                for relativepos,robot in robots:
+                    self.stitchmaps(relativepos,robot)
+                    robot.updatePercepts()
+
     def gradientmove(self):
         #Move randomly first a few times
         sizeofsubblockx=(self.maxxposition-self.minxposition)/2
@@ -175,10 +177,9 @@ class Robot:
         southeast=self.perceptmap[self.minxposition+sizeofsubblockx:self.maxxposition, self.minyposition+sizeofsubblocky: self.maxyposition]
         val=[(np.size(northwest)-np.count_nonzero(northwest))/np.size(northwest), (np.size(northeast)-np.count_nonzero(northeast))/np.size(northeast), (np.size(northeast)-np.count_nonzero(southwest))/np.size(southwest), (np.size(northeast)-np.count_nonzero(southeast))/np.size(southeast)]
         x=0
-        robots, self.currentPercept = self.world.getsubmap(self)         
-        if len(robots) > 0:
-            for relativepos,robot in robots:
-                self.stitchmaps(relativepos,robot)
+        self.updatePercepts()
+        if self.stoppingcriterion():
+            return 'Explored'
         while True:
             if val.index(max(val))==0:
                 if random.random()<0.3:
@@ -211,25 +212,13 @@ class Robot:
                         self.move(movechoice)
                         self.previousMove=movechoice
                         break
-        robots, self.currentPercept = self.world.getsubmap(self)
-        self.expandperceptmap()
-        if self.stoppingcriterion():
-            return 'Explored'
-        if len(robots) > 0:
-            for relativepos,robot in robots:
-                self.stitchmaps(relativepos,robot)
-        self.perceptmap[self.xmapposition,self.ymapposition]=utils.MAPREP.SELF
 
     def getKey(self,item):
         return item[0]
 
     def greedymigmove(self):
         #Move greedily MIG
-        robots, self.currentPercept = self.world.getsubmap(self)
-        self.expandperceptmap()
-        if len(robots) > 0:
-            for relativepos,robot in robots:
-                self.stitchmaps(relativepos,robot)
+        self.updatePercepts()
         if self.stoppingcriterion():
             return 'Explored'
         #options=self.perceptmap[self.xmapposition-self.perceptradius:self.xmapposition+self.perceptradius+1,self.ymapposition-self.perceptradius:self.ymapposition+self.perceptradius+1]
@@ -239,7 +228,7 @@ class Robot:
         for move in possiblemoves:
             i,j = direction[move]
             option = self.perceptmap[self.xmapposition+i-self.perceptradius:self.xmapposition+i+self.perceptradius+1,self.ymapposition+j-self.perceptradius:self.ymapposition+j+self.perceptradius+1]
-            options.append([np.count_nonzero(option),(i,j)])
+            options.append([np.count_nonzero(option),move,(i,j)])
 #        for i in range(-self.perceptradius,self.perceptradius+1):
 #            for j in range(-self.perceptradius,self.perceptradius+1):
 #                if (i!=0 or j!=0) and self.currentPercept[i+1,j+1]==utils.MAPREP.EMPTY and self.testDiag((i,j)):
@@ -248,8 +237,9 @@ class Robot:
         options=sorted(options, key=self.getKey)
         #print options
         if options != []:
-            if options[0][0] <(1+2*self.perceptradius)*(1+2*self.perceptradius): 
-                direct = (options[0][1][0],options[0][1][1])
+            if options[0][0] <(1+2*self.perceptradius)*(1+2*self.perceptradius):
+                self.previousMove=options[0][1]
+                direct = (options[0][2][0],options[0][2][1])
             else:
                 return self.bayesMove()
             #print direct

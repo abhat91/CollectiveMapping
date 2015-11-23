@@ -46,6 +46,9 @@ def run(t):
         t = t + 1
         for i in range(len(world.posbyrobots.keys())):
             robot = world.posbyrobots.keys()[i]
+            robot.updated = False
+        for i in range(len(world.posbyrobots.keys())):
+            robot = world.posbyrobots.keys()[i]
             if robot.greedymigmove()=='Explored':
                 flag=True
                 selectedrobot = i

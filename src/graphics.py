@@ -61,8 +61,8 @@ class Graphics(object):
         self.robotidtext.set('Robot: ' + str(robotid))
     def updateRobotMap(self, robot,robotid):
         blocksize = (self.height-5)/float(self.size/2)
-        for i in range(robot.minxposition,robot.maxxposition+1):
-            for j in range(robot.minyposition,robot.maxyposition+1):
+        for i in range(robot.minxposition,robot.maxxposition+2):
+            for j in range(robot.minyposition,robot.maxyposition+2):
                 color = self.colors[robot.perceptmap[i,j]]
                 self.canvas.itemconfig(self.rmap[i,j], outline=color, fill=color)
 #self.robotidtext.set('Robot: ' + str(robotid))
