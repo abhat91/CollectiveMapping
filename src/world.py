@@ -124,6 +124,7 @@ class World:
         dx,dy = movement
         newpos = rx+dx,ry+dy
         if self.testDiag(robot,movement)!=True:
+            print "robot",robot,"attempted to move to diagonal",newpos
             return False
         if self.worldmap[newpos] == utils.MAPREP.EMPTY:
             self.posbyrobots[robot] = newpos
@@ -131,4 +132,5 @@ class World:
             self.worldmap[rx,ry] = utils.MAPREP.EMPTY
             self.robotsbypos[newpos] = self.robotsbypos.pop((rx,ry))
             return True
+        print "robot",robot,"attempted to move to non-empty space",newpos,self.worldmap[newpos]
         return False

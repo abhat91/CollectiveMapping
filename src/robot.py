@@ -12,12 +12,20 @@ direction = {
 5 : utils.MOVES.SOUTHWEST,
 6 : utils.MOVES.WEST,
 7 : utils.MOVES.NORTHWEST
-
-
+}
+previousMoveProbs = {
+0 : [20,0.8,0.4,0.25,0.1,0.25,0.4,0.8],
+1 : [0.8,20,0.8,0.4,0.25,0.1,0.25,0.4],
+2 : [0.4,0.8,20,0.8,0.4,0.25,0.1,0.25],
+3 : [0.25,0.4,0.8,20,0.8,0.4,0.25,0.1],
+4 : [0.1,0.25,0.4,0.8,20,0.8,0.4,0.25],
+5 : [0.25,0.1,0.25,0.4,0.8,20,0.8,0.4],
+6 : [0.4,0.25,0.1,0.25,0.4,0.8,20,0.8],
+7 : [0.8,0.4,0.25,0.1,0.25,0.4,0.8,20],
 }
 class Robot:
     perceptradius=1
-
+    previousMove = None
     world = None
     def __init__(self,world,maplen):
         """Initialization method of the robot class. Updates the x and y positions. Also updates the minimum and maximum x and y
@@ -36,6 +44,8 @@ class Robot:
         self.maxxposition = l + self.perceptradius
         self.maxyposition = l + self.perceptradius
         self.world = world
+        self.previousMove = None
+    
 
     def expandperceptmap(self):
         """Given the percept matrix, the robot adds the percept to the map of the robot"""
@@ -99,7 +109,35 @@ class Robot:
             self.ymapposition += dir[1]
             self.updatemaximumpositions()
             self.updateminimumpositions()
-    
+    def bayesMove(self):
+        '''@author:renatogg - Moves to a direction with probability given by previous movement'''
+        robots,self.currentPercept = self.world.getsubmap(self)
+        self.expandperceptmap()
+        if len(robots) > 0:
+            for relativepos,robot in robots:
+                self.stitchmaps(relativepos,robot)
+        if self.previousMove == None:
+            return self.randomMove()
+        possiblemoves = self.getEmptyNeighbors()
+        if len(possiblemoves) > 0:
+            totalweight = sum([previousMoveProbs[self.previousMove][i] for i in possiblemoves])
+            decision = random.random()*totalweight
+            j = 0
+            cumulative = previousMoveProbs[self.previousMove][possiblemoves[j]]
+            while cumulative < decision:
+                j += 1
+                cumulative+=previousMoveProbs[self.previousMove][possiblemoves[j]]
+            self.previousMove =possiblemoves[j]
+            self.move(direction[self.previousMove])
+            robots, self.currentPercept = self.world.getsubmap(self)
+            self.expandperceptmap()
+            if self.stoppingcriterion()==False:
+                return 'Explored'
+            if len(robots) > 0:
+                for relativepos,robot in robots:
+                    self.stitchmaps(relativepos,robot)
+            self.perceptmap[self.xmapposition,self.ymapposition]=utils.MAPREP.SELF
+
     def randomMove(self):
         """Random movement algorithm"""
         robots, self.currentPercept = self.world.getsubmap(self)
@@ -112,7 +150,8 @@ class Robot:
         possiblemoves= self.getEmptyNeighbors()
         if len(possiblemoves)>0:
             #print possiblemoves
-            self.move(direction[possiblemoves[int(random.random()*len(possiblemoves))]])
+            self.previousMove = possiblemoves[int(random.random()*len(possiblemoves))]
+            self.move(direction[self.previousMove])
             robots, self.currentPercept = self.world.getsubmap(self)
             self.expandperceptmap()
             if self.stoppingcriterion()==False:
@@ -124,13 +163,18 @@ class Robot:
             
     def getEmptyNeighbors(self):
         empty = []
-        for i in range(len(direction)):
-            if self.currentPercept[direction[i][0]+1,direction[i][1]+1] == utils.MAPREP.EMPTY:
-                if abs(direction[i][0]) == 1 and abs(direction[i][1]) == 1:
-                    if self.currentPercept[direction[i][0],self.perceptradius] != utils.MAPREP.EMPTY or self.currentPercept[self.perceptradius,direction[i][1]] == utils.MAPREP.EMPTY:
-                        continue
-                empty.append(i)
+        for i in direction.keys():
+            dir = direction[i]
+            dx = dir[0]
+            dy = dir[1]
+            if self.currentPercept[self.perceptradius+dx,self.perceptradius+dy] == utils.MAPREP.EMPTY:#direction it wants to move is empty
+                if abs(dx) == 1 and abs(dy) == 1:#if direction is diagonal
+                    if self.currentPercept[self.perceptradius+dx,self.perceptradius] == utils.MAPREP.EMPTY and self.currentPercept[self.perceptradius,self.perceptradius+dy] == utils.MAPREP.EMPTY:#if diagonal is clear
+                        empty.append(i)
+                else:#if it's not a diagonal
+                    empty.append(i)
         return empty
+
     def gradientmove(self):
         #Move randomly first a few times
         sizeofsubblockx=(self.maxxposition-self.minxposition)/2
