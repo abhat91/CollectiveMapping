@@ -45,7 +45,6 @@ def run(t):
                 flag=True
                 selectedrobot = i
                 print "explored"
-            #robot.bayesMove()
     if not flag and len(showmap.listbox.curselection()) > 0:
         selectedrobot = int(showmap.listbox.curselection()[0])
     if previousRobot != selectedrobot:

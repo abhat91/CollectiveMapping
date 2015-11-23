@@ -184,7 +184,7 @@ class Robot:
         northeast=self.perceptmap[self.minxposition:self.minxposition+sizeofsubblockx, self.minyposition+sizeofsubblocky:self.maxyposition]
         southwest=self.perceptmap[self.minxposition+sizeofsubblockx:self.maxxposition, self.minyposition:self.minyposition+sizeofsubblocky]
         southeast=self.perceptmap[self.minxposition+sizeofsubblockx:self.maxxposition, self.minyposition+sizeofsubblocky: self.maxyposition]
-        val=[np.count_nonzero(northwest)/np.size(northwest), np.count_nonzero(northeast)/np.size(northeast), np.count_nonzero(southwest)/np.size(southwest), np.count_nonzero(southeast)/np.size(southeast)]
+        val=[(np.size(northwest)-np.count_nonzero(northwest))/np.size(northwest), (np.size(northeast)-np.count_nonzero(northeast))/np.size(northeast), (np.size(northeast)-np.count_nonzero(southwest))/np.size(southwest), (np.size(northeast)-np.count_nonzero(southeast))/np.size(southeast)]
         x=0
         robots, self.currentPercept = self.world.getsubmap(self)         
         if len(robots) > 0:
@@ -213,8 +213,15 @@ class Robot:
                     x=[utils.MOVES.SOUTHWEST, utils.MOVES.WEST, utils.MOVES.NORTHWEST, utils.MOVES.NORTH, utils.MOVES.NORTHEAST]
             movechoice=random.choice(x)
             if self.perceptmap[self.xmapposition+movechoice[0], self.ymapposition+movechoice[1]]!=utils.MAPREP.BLOCKED:
-                self.move(movechoice)
-                break
+                if self.previousMove==movechoice:
+                        self.move(movechoice)
+                        self.previousMove=movechoice
+                        break
+                else:
+                    if random.random()<0.4:
+                        self.move(movechoice)
+                        self.previousMove=movechoice
+                        break
         robots, self.currentPercept = self.world.getsubmap(self)
         self.expandperceptmap()
         if self.stoppingcriterion()==False:
