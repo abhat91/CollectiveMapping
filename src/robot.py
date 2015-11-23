@@ -173,40 +173,44 @@ class Robot:
         northeast=self.perceptmap[self.minxposition:self.minxposition+sizeofsubblockx, self.minyposition+sizeofsubblocky:self.maxyposition]
         southwest=self.perceptmap[self.minxposition+sizeofsubblockx:self.maxxposition, self.minyposition:self.minyposition+sizeofsubblocky]
         southeast=self.perceptmap[self.minxposition+sizeofsubblockx:self.maxxposition, self.minyposition+sizeofsubblocky: self.maxyposition]
-        val=[np.count_nonzero(northwest), np.count_nonzero(northeast), np.count_nonzero(southwest), np.count_nonzero(southeast)]
-        if val.index(min(val))==0:
-            if random.random()<0.4:
-                x=[utils.MOVES.NORTHWEST, utils.MOVES.NORTH, utils.MOVES.WEST]
-            else:
-                p=[utils.MOVES.NORTHEAST, utils.MOVES.NORTH, utils.MOVES.EAST]
-                y=[utils.MOVES.SOUTHWEST, utils.MOVES.SOUTH, utils.MOVES.WEST]
-                z=[utils.MOVES.SOUTHEAST, utils.MOVES.EAST]
-                x=random.choice([p,y,z])
-        elif val.index(min(val))==1:
-            if random.random()<0.4:
-                x=[utils.MOVES.NORTHEAST, utils.MOVES.NORTH, utils.MOVES.EAST]
-            else:
-                p=[utils.MOVES.WEST]
-                y=[utils.MOVES.SOUTHWEST, utils.MOVES.SOUTH, utils.MOVES.WEST]
-                z=[utils.MOVES.SOUTHEAST, utils.MOVES.EAST]
-                x=random.choice([p,y,z])
-        elif val.index(min(val))==2:
-            if random.random()<0.4:
-                x=[utils.MOVES.SOUTHWEST, utils.MOVES.SOUTH, utils.MOVES.WEST]
-            else:
-                p=[utils.MOVES.NORTH, utils.MOVES.WEST]
-                y=[utils.MOVES.NORTHEAST, utils.MOVES.EAST]
-                z=[utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH]
-                x=random.choice([p,y,z])                
-        elif val.index(min(val))==3:
-            if random.random()<0.3:
-                x=[utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH, utils.MOVES.EAST]
-            else:
-                p=[utils.MOVES.WEST]
-                y=[utils.MOVES.NORTHEAST, utils.MOVES.NORTH, utils.MOVES.EAST]
-                z=[utils.MOVES.SOUTHWEST, utils.MOVES.SOUTH]
-                x=random.choice([p,y,z])              
-        self.move(random.choice(x))
+        val=[(np.size(northwest)-np.count_nonzero(northwest))/np.size(northwest), (np.size(northeast)-np.count_nonzero(northeast))/np.size(northeast), (np.size(northeast)-np.count_nonzero(southwest))/np.size(southwest), (np.size(northeast)-np.count_nonzero(southeast))/np.size(southeast)]
+        x=0
+        robots, self.currentPercept = self.world.getsubmap(self)         
+        if len(robots) > 0:
+            for relativepos,robot in robots:
+                self.stitchmaps(relativepos,robot)
+        while True:
+            if val.index(max(val))==0:
+                if random.random()<0.3:
+                    x=[utils.MOVES.NORTHWEST, utils.MOVES.NORTH, utils.MOVES.WEST]
+                else:
+                    x=[utils.MOVES.NORTHEAST, utils.MOVES.EAST, utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH, utils.MOVES.SOUTHWEST]
+            elif val.index(max(val))==1:
+                if random.random()<0.3:
+                    x=[utils.MOVES.NORTHEAST, utils.MOVES.NORTH, utils.MOVES.EAST]
+                else:
+                    x=[utils.MOVES.NORTHWEST, utils.MOVES.WEST, utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH, utils.MOVES.SOUTHWEST]
+            elif val.index(max(val))==2:
+                if random.random()<0.3:
+                    x=[utils.MOVES.SOUTHWEST, utils.MOVES.SOUTH, utils.MOVES.WEST]
+                else:
+                    x=[utils.MOVES.NORTH, utils.MOVES.NORTHWEST, utils.MOVES.NORTHEAST, utils.MOVES.EAST, utils.MOVES.SOUTHEAST]             
+            elif val.index(max(val))==3:
+                if random.random()<0.3:
+                    x=[utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH, utils.MOVES.EAST]
+                else:
+                    x=[utils.MOVES.SOUTHWEST, utils.MOVES.WEST, utils.MOVES.NORTHWEST, utils.MOVES.NORTH, utils.MOVES.NORTHEAST]
+            movechoice=random.choice(x)
+            if self.perceptmap[self.xmapposition+movechoice[0], self.ymapposition+movechoice[1]]!=utils.MAPREP.BLOCKED:
+                if self.previousMove==movechoice:
+                        self.move(movechoice)
+                        self.previousMove=movechoice
+                        break
+                else:
+                    if random.random()<0.4:
+                        self.move(movechoice)
+                        self.previousMove=movechoice
+                        break
         robots, self.currentPercept = self.world.getsubmap(self)
         self.expandperceptmap()
         if self.stoppingcriterion():
