@@ -257,28 +257,29 @@ class Robot:
 
     def stoppingcriterion(self):
         #print "entering"
-        maptolookup = self.perceptmap[self.minxposition-1: self.maxxposition+2, self.minyposition-1:self.maxyposition+2 ]
-        currentxposition = self.xmapposition-self.minxposition+1
-        currentyposition = self.ymapposition-self.minyposition+1
-        shapeoftheworld=(self.maxxposition-self.minxposition+2, self.maxyposition-self.minyposition+2)
+        maptolookup = self.perceptmap#[self.minxposition-1: self.maxxposition+2, self.minyposition-1:self.maxyposition+2 ]
+        currentxposition = self.xmapposition#-self.minxposition+1
+        currentyposition = self.ymapposition#-self.minyposition+1
+        #print currentxposition,currentyposition
+        shapeoftheworld=maptolookup.shape
         return self.floodfill(copy.deepcopy(maptolookup), currentxposition, currentyposition, shapeoftheworld)
 
     def floodfill(self, worldmap, x, y, shapeoftheperceptworld):
-        ret=False
-        ret1=False
-        #print worldmap
+        ret=True
         
         if worldmap[x,y]!=utils.MAPREP.BLOCKED:
             
             if worldmap[x,y]==utils.MAPREP.UNEXPLORED:
                 return False
-            if x-1>=0 and x+1<shapeoftheperceptworld[0]:
-                
+            else:
                 worldmap[x,y]=utils.MAPREP.BLOCKED
-                ret=self.floodfill(worldmap, x+1, y, shapeoftheperceptworld) and self.floodfill(worldmap, x-1, y, shapeoftheperceptworld)
-            
-            if y-1>=0 and y+1<shapeoftheperceptworld[1]:
-                worldmap[x,y]=utils.MAPREP.BLOCKED
-                ret1=self.floodfill(worldmap, x, y+1, shapeoftheperceptworld) and self.floodfill(worldmap, x, y-1, shapeoftheperceptworld)
-            return ret and ret1
+                if x-1>=0:
+                    ret=self.floodfill(worldmap, x-1, y, shapeoftheperceptworld)
+                if ret and x+1<shapeoftheperceptworld[0]:
+                    ret = ret and self.floodfill(worldmap, x+1, y, shapeoftheperceptworld)
+                if ret and y-1>=0:
+                    ret = ret and self.floodfill(worldmap, x, y-1, shapeoftheperceptworld)
+                if ret  and y+1<shapeoftheperceptworld[1]:
+                    ret = ret and self.floodfill(worldmap, x, y+1, shapeoftheperceptworld)
+                return ret
         return True
