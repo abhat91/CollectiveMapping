@@ -25,7 +25,7 @@ def readmap():
 selectedrobot = 0
 previousRobot = 0
 worldmap=readmap()
-world=world.World(np.array(worldmap), [(5,3),(5,4),(15,15),(15,1),(1,15),(1,16),(1,17),(2,15),(2,15),(0,15),(0,5),(11,15),(12,15),(12,13),(1,15),(14,1),(17,1),(15,15),(1,1),(5,3),(5,4),(15,15),(15,1),(1,15),(1,16),(1,17),(2,15),(2,15),(0,15),(0,5),(11,15),(12,15),(12,13),(1,15),(14,1),(17,1),(15,15),(1,1)])
+world=world.World(np.array(worldmap), [(5,3),(5,4),(15,15),(15,1),(1,15),(1,16),(1,17),(2,15),(2,15),(0,15),(0,5),(11,15),(12,15),(12,13)])
 for robot in world.posbyrobots.keys():
     robots, robot.currentPercept = world.getsubmap(robot)
     robot.expandperceptmap()
@@ -49,7 +49,7 @@ def run(t):
             robot.updated = False
         for i in range(len(world.posbyrobots.keys())):
             robot = world.posbyrobots.keys()[i]
-            if robot.greedymigmove()=='Explored':
+            if robot.gradientmove()=='Explored':
                 flag=True
                 selectedrobot = i
                 print "explored",i

@@ -3,6 +3,7 @@ import utils
 import random
 import copy
 import sys
+import heapq
 direction = {
 0 : utils.MOVES.NORTH,
 1 : utils.MOVES.NORTHEAST,
@@ -44,8 +45,11 @@ class Robot:
         self.maxxposition = l + self.perceptradius
         self.maxyposition = l + self.perceptradius
         self.world = world
-        self.previousMove = None
+        self.previousMove = utils.MOVES.NORTH
+        self.sidetomove=0
         self.updated = False
+        self.unchangedvaluecount=0
+        self.prioritysearch=1
 
     def expandperceptmap(self):
         """Given the percept matrix, the robot adds the percept to the map of the robot"""
@@ -166,38 +170,57 @@ class Robot:
                 for relativepos,robot in robots:
                     self.stitchmaps(relativepos,robot)
                     robot.updatePercepts()
+    
 
-    def gradientmove(self):
-        #Move randomly first a few times
+    def getoppositedirection(self, currentdirection):
+        directions={utils.MOVES.NORTH:[utils.MOVES.SOUTHEAST,utils.MOVES.SOUTH,utils.MOVES.SOUTHWEST],
+                    utils.MOVES.SOUTH:[utils.MOVES.NORTH, utils.MOVES.NORTHWEST,utils.MOVES.NORTHEAST],
+                    utils.MOVES.EAST:[utils.MOVES.WEST,utils.MOVES.NORTHWEST, utils.MOVES.SOUTHWEST],
+                    utils.MOVES.WEST:[utils.MOVES.EAST,utils.MOVES.NORTHEAST, utils.MOVES.SOUTHEAST],
+                    utils.MOVES.NORTHEAST:[utils.MOVES.SOUTH,utils.MOVES.SOUTHWEST,utils.MOVES.SOUTHEAST],
+                    utils.MOVES.NORTHWEST:[utils.MOVES.SOUTH, utils.MOVES.SOUTHEAST,utils.MOVES.SOUTHWEST],
+                    utils.MOVES.SOUTHEAST:[utils.MOVES.NORTHWEST,utils.MOVES.WEST,utils.MOVES.NORTH],
+                    utils.MOVES.SOUTHWEST:[utils.MOVES.NORTHEAST,utils.MOVES.EAST,utils.MOVES.NORTH]}
+        #dirforotherrobot=self.getleastmappedarea(2)
+        return directions[currentdirection]
+
+    def getleastmappedarea(self, number):
         sizeofsubblockx=(self.maxxposition-self.minxposition)/2
         sizeofsubblocky=(self.maxyposition-self.minyposition)/2
         northwest=self.perceptmap[self.minxposition:self.minxposition+sizeofsubblockx, self.minyposition:self.minyposition+sizeofsubblocky]
         northeast=self.perceptmap[self.minxposition:self.minxposition+sizeofsubblockx, self.minyposition+sizeofsubblocky:self.maxyposition]
         southwest=self.perceptmap[self.minxposition+sizeofsubblockx:self.maxxposition, self.minyposition:self.minyposition+sizeofsubblocky]
         southeast=self.perceptmap[self.minxposition+sizeofsubblockx:self.maxxposition, self.minyposition+sizeofsubblocky: self.maxyposition]
-        val=[(np.size(northwest)-np.count_nonzero(northwest))/np.size(northwest), (np.size(northeast)-np.count_nonzero(northeast))/np.size(northeast), (np.size(northeast)-np.count_nonzero(southwest))/np.size(southwest), (np.size(northeast)-np.count_nonzero(southeast))/np.size(southeast)]
+        voronoi=[(np.size(northwest)-np.count_nonzero(northwest))/float(np.size(northwest)+np.size(northeast)+np.size(southwest)+np.size(southeast)), (np.size(northeast)-np.count_nonzero(northeast))/float(np.size(northwest)+np.size(northeast)+np.size(southwest)+np.size(southeast)), (np.size(northeast)-np.count_nonzero(southwest))/float(np.size(northwest)+np.size(northeast)+np.size(southwest)+np.size(southeast)), (np.size(northeast)-np.count_nonzero(southeast))/float(np.size(northwest)+np.size(northeast)+np.size(southwest)+np.size(southeast))]
+        maxima=heapq.nlargest(number, voronoi)
+        return voronoi.index(maxima[number-1])
+
+    def gradientmove(self):
+        self.sidetomove=self.getleastmappedarea(self.prioritysearch)
         x=0
-        self.updatePercepts()
-        if self.stoppingcriterion():
-            return 'Explored'
+        robots, self.currentPercept = self.world.getsubmap(self)         
+        if len(robots) > 0:
+            for relativepos,robot in robots:
+                robot.previousMove=random.choice(self.getoppositedirection(self.previousMove))
+                self.stitchmaps(relativepos,robot)
         while True:
-            if val.index(max(val))==0:
-                if random.random()<0.3:
+            if self.sidetomove==0:
+                if random.random()<0.4:
                     x=[utils.MOVES.NORTHWEST, utils.MOVES.NORTH, utils.MOVES.WEST]
                 else:
                     x=[utils.MOVES.NORTHEAST, utils.MOVES.EAST, utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH, utils.MOVES.SOUTHWEST]
-            elif val.index(max(val))==1:
-                if random.random()<0.3:
+            elif self.sidetomove==1:
+                if random.random()<0.4:
                     x=[utils.MOVES.NORTHEAST, utils.MOVES.NORTH, utils.MOVES.EAST]
                 else:
                     x=[utils.MOVES.NORTHWEST, utils.MOVES.WEST, utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH, utils.MOVES.SOUTHWEST]
-            elif val.index(max(val))==2:
-                if random.random()<0.3:
+            elif self.sidetomove==2:
+                if random.random()<0.4:
                     x=[utils.MOVES.SOUTHWEST, utils.MOVES.SOUTH, utils.MOVES.WEST]
                 else:
                     x=[utils.MOVES.NORTH, utils.MOVES.NORTHWEST, utils.MOVES.NORTHEAST, utils.MOVES.EAST, utils.MOVES.SOUTHEAST]             
-            elif val.index(max(val))==3:
-                if random.random()<0.3:
+            elif self.sidetomove==3:
+                if random.random()<0.4:
                     x=[utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH, utils.MOVES.EAST]
                 else:
                     x=[utils.MOVES.SOUTHWEST, utils.MOVES.WEST, utils.MOVES.NORTHWEST, utils.MOVES.NORTH, utils.MOVES.NORTHEAST]
@@ -205,13 +228,28 @@ class Robot:
             if self.perceptmap[self.xmapposition+movechoice[0], self.ymapposition+movechoice[1]]!=utils.MAPREP.BLOCKED:
                 if self.previousMove==movechoice:
                         self.move(movechoice)
+                        self.unchangedvaluecount+=1
                         self.previousMove=movechoice
                         break
                 else:
-                    if random.random()<0.4:
+                    self.unchangedvaluecount=0
+                    self.prioritysearch=1
+                    if random.random()<0.1:
                         self.move(movechoice)
                         self.previousMove=movechoice
                         break
+        if self.unchangedvaluecount>100:
+            self.prioritysearch+=1
+        if self.prioritysearch>4:
+            self.prioritysearch=1
+        robots, self.currentPercept = self.world.getsubmap(self)
+        self.expandperceptmap()
+        if self.stoppingcriterion():
+            return 'Explored'
+        if len(robots) > 0:
+            for relativepos,robot in robots:
+                self.stitchmaps(relativepos,robot)
+        self.perceptmap[self.xmapposition,self.ymapposition]=utils.MAPREP.SELF
 
     def getKey(self,item):
         return item[0]
