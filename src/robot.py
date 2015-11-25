@@ -196,6 +196,8 @@ class Robot:
         return voronoi.index(maxima[number-1])
 
     def gradientmove(self):
+        probabilityofmove=0.4
+        randommove=0.051
         self.sidetomove=self.getleastmappedarea(self.prioritysearch)
         x=0
         robots, self.currentPercept = self.world.getsubmap(self)         
@@ -205,22 +207,22 @@ class Robot:
                 self.stitchmaps(relativepos,robot)
         while True:
             if self.sidetomove==0:
-                if random.random()<0.4:
+                if random.random()<probabilityofmove:
                     x=[utils.MOVES.NORTHWEST, utils.MOVES.NORTH, utils.MOVES.WEST]
                 else:
                     x=[utils.MOVES.NORTHEAST, utils.MOVES.EAST, utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH, utils.MOVES.SOUTHWEST]
             elif self.sidetomove==1:
-                if random.random()<0.4:
+                if random.random()<probabilityofmove:
                     x=[utils.MOVES.NORTHEAST, utils.MOVES.NORTH, utils.MOVES.EAST]
                 else:
                     x=[utils.MOVES.NORTHWEST, utils.MOVES.WEST, utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH, utils.MOVES.SOUTHWEST]
             elif self.sidetomove==2:
-                if random.random()<0.4:
+                if random.random()<probabilityofmove:
                     x=[utils.MOVES.SOUTHWEST, utils.MOVES.SOUTH, utils.MOVES.WEST]
                 else:
                     x=[utils.MOVES.NORTH, utils.MOVES.NORTHWEST, utils.MOVES.NORTHEAST, utils.MOVES.EAST, utils.MOVES.SOUTHEAST]             
             elif self.sidetomove==3:
-                if random.random()<0.4:
+                if random.random()<probabilityofmove:
                     x=[utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH, utils.MOVES.EAST]
                 else:
                     x=[utils.MOVES.SOUTHWEST, utils.MOVES.WEST, utils.MOVES.NORTHWEST, utils.MOVES.NORTH, utils.MOVES.NORTHEAST]
@@ -234,11 +236,11 @@ class Robot:
                 else:
                     self.unchangedvaluecount=0
                     self.prioritysearch=1
-                    if random.random()<0.1:
+                    if random.random()<randommove:
                         self.move(movechoice)
                         self.previousMove=movechoice
                         break
-        if self.unchangedvaluecount>100:
+        if self.unchangedvaluecount>20:
             self.prioritysearch+=1
         if self.prioritysearch>4:
             self.prioritysearch=1
