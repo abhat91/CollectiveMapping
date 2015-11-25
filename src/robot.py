@@ -4,6 +4,8 @@ import random
 import copy
 import sys
 import heapq
+import astar
+import math
 direction = {
 0 : utils.MOVES.NORTH,
 1 : utils.MOVES.NORTHEAST,
@@ -294,6 +296,68 @@ class Robot:
             #print direct
             self.move(direct)
 
+    def targetedmigmove(self):
+        robots, self.currentPercept = self.world.getsubmap(self)
+        self.expandperceptmap()
+        self.migfrontiers = []
+        shapeoftheworld=(self.maxxposition, self.maxyposition)
+        self.perceptmap[self.perceptmap == 7] = utils.MAPREP.UNEXPLORED
+        self.perceptmap[self.perceptmap == 8] = utils.MAPREP.UNEXPLORED 
+        self.floodfillfrontiers(copy.deepcopy(self.perceptmap),self.xmapposition,self.ymapposition)
+        #print self.migfrontiers
+        options=sorted(self.migfrontiers, key=self.getKey)
+        
+        #for option in options:
+        #    self.perceptmap[option[1][0],option[1][1]] = 7
+        if len(options) == 0:
+            return 'Explored'
+        goal = options[0][1]
+        #self.perceptmap[goal[0],goal[1]]=8
+        #print (self.xmapposition,self.ymapposition),goal
+
+        pt = astar.PathFinder(copy.deepcopy(self.perceptmap),len(self.perceptmap),(self.xmapposition,self.ymapposition),goal)
+        path = pt.run()
+        direction = (path[0][0]-self.xmapposition,path[0][1]-self.ymapposition)
+        #print direction
+        
+        '''for option in self.migfrontiers:
+            print self.perceptmap[option[1][0],option[1][1]],self.calcdistance((self.xmapposition,self.ymapposition),option)'''
+        
+        self.move(direction)
+        robots, self.currentPercept = self.world.getsubmap(self)   
+        #print robotslist
+        if len(robots) > 0:
+            for relativepos,robot in robots:
+                self.stitchmaps(relativepos,robot)
+
+    def calcdistance(self,point,goal):
+        dx = abs(point[0]-goal[0])
+        dy = abs(point[1]-goal[1])
+        #dist = 1*(dx + dy)
+        dist = (math.sqrt(pow(dx,2)+pow(dy,2)))
+        return dist
+
+    def calcinformation(self,loc):
+        return np.count_nonzero(self.perceptmap[loc[0]-self.perceptradius:loc[0]+self.perceptradius+1,loc[1]-self.perceptradius:loc[1]+self.perceptradius+1])
+        
+    def floodfillfrontiers(self, worldmap, x, y):
+        if worldmap[x,y]!=utils.MAPREP.BLOCKED:
+            if worldmap[x,y]==utils.MAPREP.UNEXPLORED:
+                worldmap[x,y]=utils.MAPREP.BLOCKED
+                #self.migfrontiers.append((self.calcinformation((x,y)),(x,y)))
+                self.migfrontiers.append((1.5*self.calcdistance((self.xmapposition,self.ymapposition),(x,y))+self.calcinformation((x,y)),(x,y)))
+                return
+            if x-1>0 and x+1<len(worldmap):
+                worldmap[x,y]=utils.MAPREP.BLOCKED
+                self.floodfillfrontiers(worldmap, x+1, y)
+                self.floodfillfrontiers(worldmap, x-1, y)
+            if y-1>0 and y+1<len(worldmap):
+                worldmap[x,y]=utils.MAPREP.BLOCKED
+                self.floodfillfrontiers(worldmap, x, y+1)
+                self.floodfillfrontiers(worldmap, x, y-1)
+            return
+        return            
+
     def stoppingcriterion(self):
         #print "entering"
         maptolookup = self.perceptmap#[self.minxposition-1: self.maxxposition+2, self.minyposition-1:self.maxyposition+2 ]
@@ -329,7 +393,7 @@ class Robot:
         currentyposition = self.ymapposition
         shapeoftheworld=maptolookup.shape
         returnedvalue=self.getunfilledpoint(copy.deepcopy(maptolookup), currentxposition, currentyposition, shapeoftheworld)
-        print "Forntier:",self.xdestination, self.ydestination
+#        print "Forntier:",self.xdestination, self.ydestination
 
     def getunfilledpoint(self, worldmap, x, y, shapeoftheperceptworld):
         ret=True
