@@ -24,6 +24,8 @@ previousMoveProbs = {
 6 : [0.4,0.25,0.1,0.25,0.4,0.8,20,0.8],
 7 : [0.8,0.4,0.25,0.1,0.25,0.4,0.8,20],
 }
+xval=0
+yval=0
 class Robot:
     perceptradius=1
     previousMove = None
@@ -50,6 +52,12 @@ class Robot:
         self.updated = False
         self.unchangedvaluecount=0
         self.prioritysearch=1
+
+        #Variables for A* algorithm
+        self.xdestination=0
+        self.ydestination=0
+        self.isastar=False
+        self.astarduration=0
 
     def expandperceptmap(self):
         """Given the percept matrix, the robot adds the percept to the map of the robot"""
@@ -252,6 +260,7 @@ class Robot:
             for relativepos,robot in robots:
                 self.stitchmaps(relativepos,robot)
         self.perceptmap[self.xmapposition,self.ymapposition]=utils.MAPREP.SELF
+        self.findclosestunexploredpoint()
 
     def getKey(self,item):
         return item[0]
@@ -311,5 +320,36 @@ class Robot:
                     ret = ret and self.floodfill(worldmap, x, y-1, shapeoftheperceptworld)
                 if ret  and y+1<shapeoftheperceptworld[1]:
                     ret = ret and self.floodfill(worldmap, x, y+1, shapeoftheperceptworld)
+                return ret
+        return True
+    
+    def findclosestunexploredpoint(self):
+        maptolookup = self.perceptmap
+        currentxposition = self.xmapposition
+        currentyposition = self.ymapposition
+        shapeoftheworld=maptolookup.shape
+        returnedvalue=self.getunfilledpoint(copy.deepcopy(maptolookup), currentxposition, currentyposition, shapeoftheworld)
+        print "Forntier:",self.xdestination, self.ydestination
+
+    def getunfilledpoint(self, worldmap, x, y, shapeoftheperceptworld):
+        ret=True
+        if worldmap[x,y]!=utils.MAPREP.BLOCKED:
+            if worldmap[x,y]==utils.MAPREP.UNEXPLORED:
+                self.xdestination=x
+                self.ydestination=y
+                return False
+            else:
+                worldmap[x,y]=utils.MAPREP.BLOCKED
+                if x-1>=0:
+                    ret=self.floodfill(worldmap, x-1, y, shapeoftheperceptworld)
+                if ret and x+1<shapeoftheperceptworld[0]:
+                    ret = ret and self.floodfill(worldmap, x+1, y, shapeoftheperceptworld)
+                if ret and y-1>=0:
+                    ret = ret and self.floodfill(worldmap, x, y-1, shapeoftheperceptworld)
+                if ret  and y+1<shapeoftheperceptworld[1]:
+                    ret = ret and self.floodfill(worldmap, x, y+1, shapeoftheperceptworld)
+                if ret==False:
+                    self.xdestination=x
+                    self.ydestination=y
                 return ret
         return True
