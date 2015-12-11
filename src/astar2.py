@@ -28,16 +28,17 @@ class Astar2:
                 if not(i == 0 and j == 0):
                     node = (parent[0]+i,parent[1]+j)
                     #print node
-                    if self.perceptmap[node] in [utils.MAPREP.EMPTY,utils.MAPREP.UNEXPLORED] :
-                        #print 'empty'
-                        if abs(i) == 1 and abs(j) == 1:
-                            #print 'diag'
-                            if self.perceptmap[parent[0]+i,parent[1]] in [utils.MAPREP.EMPTY,utils.MAPREP.UNEXPLORED] and self.perceptmap[parent[0],parent[1]+j] in [utils.MAPREP.EMPTY,utils.MAPREP.UNEXPLORED]:
+                    if node[0]>=0 and node[0]<self.perceptmap.shape[0] and node[1]>=0 and node[1]<self.perceptmap.shape[1]:
+                        if self.perceptmap[node] in [utils.MAPREP.EMPTY,utils.MAPREP.UNEXPLORED] :
+                            #print 'empty'
+                            if abs(i) == 1 and abs(j) == 1:
+                                #print 'diag'
+                                if self.perceptmap[parent[0]+i,parent[1]] in [utils.MAPREP.EMPTY,utils.MAPREP.UNEXPLORED] and self.perceptmap[parent[0],parent[1]+j] in [utils.MAPREP.EMPTY,utils.MAPREP.UNEXPLORED]:
+                                    #print 'appended'
+                                    neighbors.append(node)
+                            else:
                                 #print 'appended'
                                 neighbors.append(node)
-                        else:
-                            #print 'appended'
-                            neighbors.append(node)
         #print neighbors
         return neighbors
 
@@ -48,7 +49,7 @@ class Astar2:
             current = self.frontier.get()
             #print current
             if current == self.destination:
-                print 'got it', self.getPath()
+                #print 'got it', self.getPath()
                 return self.getPath()
             for nextmove in self.neighbors(current):
                 #print nextmove,self.came_from
@@ -58,7 +59,7 @@ class Astar2:
                     priority = nextcost + self.h(nextmove)
                     self.frontier.put(nextmove,priority)
                     self.came_from[nextmove] = current
-        print 'ops',self.current, self.destination
+        #print 'ops',self.current, self.destination
         return False
 
 
