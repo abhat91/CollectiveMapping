@@ -6,6 +6,7 @@ import sys
 import heapq
 import astar
 import math
+import astar2
 direction = {
 0 : utils.MOVES.NORTH,
 1 : utils.MOVES.NORTHEAST,
@@ -48,8 +49,9 @@ class Robot:
         #This value has to be updated with the minimum value of x and y reached by the robot
         self.maxxposition = l + self.perceptradius
         self.maxyposition = l + self.perceptradius
+
         self.world = world
-        self.previousMove = utils.MOVES.NORTH
+        self.previousMove = 0
         self.sidetomove=0
         self.updated = False
         self.unchangedvaluecount=0
@@ -60,6 +62,40 @@ class Robot:
         self.ydestination=0
         self.isastar=False
         self.astarduration=0
+
+        # Variables for A* 2 algorithm
+        self.destination = (0,0)
+        self.path = []
+
+    def aStar2Move(self):
+        self.updatePercepts()
+        if self.stoppingcriterion():
+            return 'Explored'
+        if len(self.path) > 0: # If there's a path planned
+            nextMove = self.path.pop(0)
+            print nextMove
+            direction = (nextMove[0]-self.xmapposition,nextMove[1]-self.ymapposition)
+            print direction
+            if self.move(direction): # If can follow the plan
+                robots, self.currentPercept = self.world.getsubmap(self)
+                #print robotslist
+                if len(robots) > 0:
+                    for relativepos,robot in robots:
+                        self.stitchmaps(relativepos,robot)
+                return
+        # If there's no plan or plan cannot be executed:
+        self.path = []
+        self.updateExploringTargets()
+        for target in self.migfrontiers: # Orderly go through  targets until a path is made
+            astar = astar2.Astar2(self.perceptmap,self.currentPercept,(self.xmapposition,self.ymapposition),target)
+            path = astar.search()
+            if path:
+                self.path = path
+                print path
+                break;
+        if len(self.path) == 0: #no possible move for any target, move randomly
+            self.randomMove()
+
 
     def expandperceptmap(self):
         """Given the percept matrix, the robot adds the percept to the map of the robot"""
@@ -125,6 +161,8 @@ class Robot:
             self.updatemaximumpositions()
             self.updateminimumpositions()
             self.perceptmap[self.xmapposition,self.ymapposition]=utils.MAPREP.SELF
+            return True
+        return False
     def bayesMove(self):
         '''@author:renatogg - Moves to a direction with probability given by previous movement'''
         self.updatePercepts()
@@ -156,7 +194,7 @@ class Robot:
             self.previousMove = possiblemoves[int(random.random()*len(possiblemoves))]
             self.move(direction[self.previousMove])
 
-    
+
     def getPossibleMoves(self):
         possiblemoves = []
         for i in direction.keys():
@@ -180,7 +218,7 @@ class Robot:
                 for relativepos,robot in robots:
                     self.stitchmaps(relativepos,robot)
                     robot.updatePercepts()
-    
+
 
     def getoppositedirection(self, currentdirection):
         directions={utils.MOVES.NORTH:[utils.MOVES.SOUTHEAST,utils.MOVES.SOUTH,utils.MOVES.SOUTHWEST],
@@ -210,7 +248,7 @@ class Robot:
         randommove=0.051
         self.sidetomove=self.getleastmappedarea(self.prioritysearch)
         x=0
-        robots, self.currentPercept = self.world.getsubmap(self)         
+        robots, self.currentPercept = self.world.getsubmap(self)
         if len(robots) > 0:
             for relativepos,robot in robots:
                 robot.previousMove=random.choice(self.getoppositedirection(self.previousMove))
@@ -230,7 +268,7 @@ class Robot:
                 if random.random()<probabilityofmove:
                     x=[utils.MOVES.SOUTHWEST, utils.MOVES.SOUTH, utils.MOVES.WEST]
                 else:
-                    x=[utils.MOVES.NORTH, utils.MOVES.NORTHWEST, utils.MOVES.NORTHEAST, utils.MOVES.EAST, utils.MOVES.SOUTHEAST]             
+                    x=[utils.MOVES.NORTH, utils.MOVES.NORTHWEST, utils.MOVES.NORTHEAST, utils.MOVES.EAST, utils.MOVES.SOUTHEAST]
             elif self.sidetomove==3:
                 if random.random()<probabilityofmove:
                     x=[utils.MOVES.SOUTHEAST, utils.MOVES.SOUTH, utils.MOVES.EAST]
@@ -296,17 +334,24 @@ class Robot:
             #print direct
             self.move(direct)
 
+    def updateExploringTargets(self):
+        self.migfrontiers = []
+        self.floodfillfrontiers(copy.deepcopy(self.perceptmap),self.xmapposition,self.ymapposition)
+        self.migfrontiers = sorted(self.migfrontiers, key=self.getKey)
+
+
+
     def targetedmigmove(self):
         robots, self.currentPercept = self.world.getsubmap(self)
         self.expandperceptmap()
         self.migfrontiers = []
         shapeoftheworld=(self.maxxposition, self.maxyposition)
         self.perceptmap[self.perceptmap == 7] = utils.MAPREP.UNEXPLORED
-        self.perceptmap[self.perceptmap == 8] = utils.MAPREP.UNEXPLORED 
+        self.perceptmap[self.perceptmap == 8] = utils.MAPREP.UNEXPLORED
         self.floodfillfrontiers(copy.deepcopy(self.perceptmap),self.xmapposition,self.ymapposition)
         #print self.migfrontiers
         options=sorted(self.migfrontiers, key=self.getKey)
-        
+
         #for option in options:
         #    self.perceptmap[option[1][0],option[1][1]] = 7
         if len(options) == 0:
@@ -319,12 +364,12 @@ class Robot:
         path = pt.run()
         direction = (path[0][0]-self.xmapposition,path[0][1]-self.ymapposition)
         #print direction
-        
+
         '''for option in self.migfrontiers:
             print self.perceptmap[option[1][0],option[1][1]],self.calcdistance((self.xmapposition,self.ymapposition),option)'''
-        
+
         self.move(direction)
-        robots, self.currentPercept = self.world.getsubmap(self)   
+        robots, self.currentPercept = self.world.getsubmap(self)
         #print robotslist
         if len(robots) > 0:
             for relativepos,robot in robots:
@@ -339,7 +384,7 @@ class Robot:
 
     def calcinformation(self,loc):
         return np.count_nonzero(self.perceptmap[loc[0]-self.perceptradius:loc[0]+self.perceptradius+1,loc[1]-self.perceptradius:loc[1]+self.perceptradius+1])
-        
+
     def floodfillfrontiers(self, worldmap, x, y):
         if worldmap[x,y]!=utils.MAPREP.BLOCKED:
             if worldmap[x,y]==utils.MAPREP.UNEXPLORED:
@@ -347,16 +392,20 @@ class Robot:
                 #self.migfrontiers.append((self.calcinformation((x,y)),(x,y)))
                 self.migfrontiers.append((1.5*self.calcdistance((self.xmapposition,self.ymapposition),(x,y))+self.calcinformation((x,y)),(x,y)))
                 return
-            if x-1>0 and x+1<len(worldmap):
+            if x-1>0:
+                worldmap[x,y]=utils.MAPREP.BLOCKED
+                self.floodfillfrontiers(worldmap, x-1, y)
+            if x+1<len(worldmap):
                 worldmap[x,y]=utils.MAPREP.BLOCKED
                 self.floodfillfrontiers(worldmap, x+1, y)
-                self.floodfillfrontiers(worldmap, x-1, y)
-            if y-1>0 and y+1<len(worldmap):
+            if y+1<len(worldmap):
                 worldmap[x,y]=utils.MAPREP.BLOCKED
                 self.floodfillfrontiers(worldmap, x, y+1)
+            if y-1>0:
+                worldmap[x,y]=utils.MAPREP.BLOCKED
                 self.floodfillfrontiers(worldmap, x, y-1)
             return
-        return            
+        return
 
     def stoppingcriterion(self):
         #print "entering"
@@ -369,9 +418,9 @@ class Robot:
 
     def floodfill(self, worldmap, x, y, shapeoftheperceptworld):
         ret=True
-        
+
         if worldmap[x,y]!=utils.MAPREP.BLOCKED:
-            
+
             if worldmap[x,y]==utils.MAPREP.UNEXPLORED:
                 return False
             else:
@@ -386,7 +435,7 @@ class Robot:
                     ret = ret and self.floodfill(worldmap, x, y+1, shapeoftheperceptworld)
                 return ret
         return True
-    
+
     def findclosestunexploredpoint(self):
         maptolookup = self.perceptmap
         currentxposition = self.xmapposition
