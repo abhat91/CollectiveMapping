@@ -73,16 +73,18 @@ class Robot:
             return 'Explored'
         if len(self.path) > 0: # If there's a path planned
             nextMove = self.path.pop(0)
-            print nextMove
+            #print nextMove
             direction = (nextMove[0]-self.xmapposition,nextMove[1]-self.ymapposition)
-            print direction
-            if self.move(direction): # If can follow the plan
-                robots, self.currentPercept = self.world.getsubmap(self)
-                #print robotslist
-                if len(robots) > 0:
-                    for relativepos,robot in robots:
-                        self.stitchmaps(relativepos,robot)
-                return
+            if abs(direction[0])>1 or abs(direction[1])>1:
+                self.path = []
+            else:
+                if self.move(direction): # If can follow the plan
+                    robots, self.currentPercept = self.world.getsubmap(self)
+                    #print robotslist
+                    if len(robots) > 0:
+                        for relativepos,robot in robots:
+                            self.stitchmaps(relativepos,robot)
+                    return
         # If there's no plan or plan cannot be executed:
         self.path = []
         self.updateExploringTargets()
@@ -91,7 +93,7 @@ class Robot:
             path = astar.search()
             if path:
                 self.path = path
-                print path
+                #print path
                 break;
         if len(self.path) == 0: #no possible move for any target, move randomly
             self.randomMove()
@@ -244,6 +246,8 @@ class Robot:
         return voronoi.index(maxima[number-1])
 
     def gradientmove(self):
+    	if self.previousMove==None or self.previousMove==0:
+    		self.previousMove=utils.MOVES.NORTH
         probabilityofmove=0.4
         randommove=0.051
         self.sidetomove=self.getleastmappedarea(self.prioritysearch)
@@ -282,12 +286,15 @@ class Robot:
                         self.previousMove=movechoice
                         break
                 else:
-                    self.unchangedvaluecount=0
-                    self.prioritysearch=1
-                    if random.random()<randommove:
-                        self.move(movechoice)
-                        self.previousMove=movechoice
-                        break
+                	self.aStar2Move()
+                	self.previousMove=utils.MOVES.NORTH
+                	break
+                    #self.unchangedvaluecount=0
+                    #self.prioritysearch=1
+                    #if random.random()<randommove:
+                    #    self.move(movechoice)
+                    #    self.previousMove=movechoice
+                        
         if self.unchangedvaluecount>20:
             self.prioritysearch+=1
         if self.prioritysearch>4:
@@ -329,10 +336,14 @@ class Robot:
             if options[0][0] <(1+2*self.perceptradius)*(1+2*self.perceptradius):
                 self.previousMove=options[0][1]
                 direct = (options[0][2][0],options[0][2][1])
+                self.move(direct)
             else:
-                return self.bayesMove()
+                return self.aStar2Move()
+
+        else:
+            return self.aStar2Move()
             #print direct
-            self.move(direct)
+        
 
     def updateExploringTargets(self):
         self.migfrontiers = []
