@@ -4,11 +4,10 @@ import utils
 import copy
 
 class World:
-    worldmap = np.zeros(0)
-    robotsbypos = {}
-    posbyrobots = {}
 
-    def __init__(self,worldmap,robotpositions):
+
+
+    def __init__(self,worldmap,robotpositions,alg):
         """ Initializer for class world
             @author: renatogg
             map: a numpy matrix to serve as a map, where:
@@ -21,24 +20,32 @@ class World:
             robotpositions: a list of coordinates where to insert the robots
         """
         self.worldmap = worldmap
+        self.robotsbypos = {}
+        self.posbyrobots = {}
+        self.nRobots=0
         for i in robotpositions:
-            self.placenewrobot(i)
+            self.placenewrobot(i,alg)
         return
 
-    def createRobot(self,position):
+    def createRobot(self,position,alg):
         """
         Creates a new robot in given position
         """
-        self.robotsbypos[position] = robot.Robot(self, len(self.worldmap)) #Create new robot at given positon
+        self.robotsbypos[position] = robot.Robot(self, len(self.worldmap),position,copy.deepcopy(self.nRobots),alg) #Create new robot at given positon
+        self.nRobots+=1
+
         self.posbyrobots[self.robotsbypos[position]] = position
         self.worldmap[position]=utils.MAPREP.PEER
-    def placenewrobot(self,position):
+        robots, self.robotsbypos[position].currentPercept = self.getsubmap(self.robotsbypos[position])
+        self.robotsbypos[position].expandperceptmap()
+    def placenewrobot(self,position,alg):
         """ Places a new robot in given position
             @author: renatogg
             if position is not available(has another robot or a wall), try to place robot in 8-connected radius from specified position
         """
+        position = (position[0],position[1])
         if self.worldmap[position] ==utils.MAPREP.EMPTY:
-            self.createRobot(position)
+            self.createRobot(position,alg)
         else:
             radius = 1
             x,y = position
@@ -47,22 +54,22 @@ class World:
                 for i in range(-radius,radius):#top wall
                     if x+i >= 0 and x+i < mx and y + radius < my:
                         if self.worldmap[x+i,y+radius] == utils.MAPREP.EMPTY:
-                            self.createRobot((x+i,y+radius))
+                            self.createRobot((x+i,y+radius),alg)
                             return
                 for j in range(-radius,radius):#Right wall
                     if y+j >= 0 and y+j < my and x + radius < mx:
                         if self.worldmap[x+radius,y+j] == utils.MAPREP.EMPTY:
-                            self.createRobot((x+radius,y+j))
+                            self.createRobot((x+radius,y+j),alg)
                             return
                 for i in range(-radius,radius):#Bottom wall
                     if x+i >= 0 and x+i < mx and y - radius >= 0:
                         if self.worldmap[x+i,y-radius] == utils.MAPREP.EMPTY:
-                            self.createRobot((x+i,y-radius))
+                            self.createRobot((x+i,y-radius),alg)
                             return
                 for j in range(-radius,radius):#Left  wall
                     if y+j >= 0 and y+j < my and x - radius >= 0:
                         if self.worldmap[x-radius,y+j] == utils.MAPREP.EMPTY:
-                            self.createRobot((x-radius,y+j))
+                            self.createRobot((x-radius,y+j),alg)
                             return
                 radius +=1
 
@@ -84,11 +91,12 @@ class World:
         currentPercept[perceptradius, perceptradius]=utils.MAPREP.SELF
         currentPercept[currentPercept == utils.MAPREP.UNEXPLORED] = utils.MAPREP.EMPTY
         robotsrelativelocations=self.getrobotsrelativepositions(currentPercept)
+        # print self.robotsbypos.keys()
         if len(self.robotsbypos)>0:
             listofrobots=[]
             for robotlocation in robotsrelativelocations:
                 listofrobots.append(((robotlocation[0], robotlocation[1]), self.robotsbypos[(startx+robotlocation[0], starty+robotlocation[1])]))
-    
+
     #print "p",currentPercept
         return listofrobots, currentPercept
 

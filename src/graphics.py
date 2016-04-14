@@ -19,7 +19,7 @@ class Graphics(object):
         self.rect = {}
         self.rmap={}
         self.colors = {utils.MAPREP.EMPTY:"white",utils.MAPREP.BLOCKED:"black",utils.MAPREP.SELF:"red",utils.MAPREP.PEER:"blue",utils.MAPREP.UNEXPLORED:"gray"}
-    
+
     def graphMap(self, worldmap):
         blocksize = (self.height-5)/float(self.size)
         for i in range(self.size):
@@ -59,19 +59,29 @@ class Graphics(object):
                 color = self.colors[robot.perceptmap[i,j]]
                 self.canvas.itemconfig(self.rmap[i,j], outline=color, fill=color)
         self.robotidtext.set('Robot: ' + str(robotid))
-    def updateRobotMap(self, robot,robotid):
+    def updateRobotMap(self, robot,robotid,robotlist):
         blocksize = (self.height-5)/float(self.size/2)
-        for i in range(robot.minxposition,robot.maxxposition+2):
-            for j in range(robot.minyposition,robot.maxyposition+2):
+
+        for i in range(self.rsize):#range(robot.minxposition,robot.maxxposition+2):
+            for j in range(self.rsize):#range(robot.minyposition,robot.maxyposition+2):
                 color = self.colors[robot.perceptmap[i,j]]
                 self.canvas.itemconfig(self.rmap[i,j], outline=color, fill=color)
+        if len(robot.goalList)>0:
+            for goal in robot.goalList:
+                    self.canvas.itemconfig(self.rmap[goal], outline="green", fill="green")
+        i = 0
+        for pos in robotlist:
+            if i != robotid:
+                pos = (pos[0]+self.rsize/2-robot.startpos[0],pos[1]+self.rsize/2-robot.startpos[1])
+                self.canvas.itemconfig(self.rmap[pos], outline="blue", fill="blue")
+            i+=1
 #self.robotidtext.set('Robot: ' + str(robotid))
 
     def creategraphics(self, worldmap,robotmap,robotid):
         self.graphMap(worldmap)
         self.graphRobotMap(robotmap,robotid)
 
-    def updateGraphics(self, worldmap,robotmap,selrobotpos,robotid,t):
+    def updateGraphics(self, worldmap,selrobotpos,robotid,t):
         self.updateMap(worldmap,selrobotpos)
         #self.updateRobotMap(robotmap,robotid)
         self.timetext.set('Time: ' + str(t))
