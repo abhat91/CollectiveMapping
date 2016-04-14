@@ -344,6 +344,8 @@ class Robot:
 
 
     def getoppositedirection(self, currentdirection):
+        if self.previousMove==None or self.previousMove==0:
+    		self.previousMove=utils.MOVES.NORTH
         directions={utils.MOVES.NORTH:[utils.MOVES.SOUTHEAST,utils.MOVES.SOUTH,utils.MOVES.SOUTHWEST],
                     utils.MOVES.SOUTH:[utils.MOVES.NORTH, utils.MOVES.NORTHWEST,utils.MOVES.NORTHEAST],
                     utils.MOVES.EAST:[utils.MOVES.WEST,utils.MOVES.NORTHWEST, utils.MOVES.SOUTHWEST],
